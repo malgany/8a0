@@ -474,6 +474,243 @@ a {
   font-size: 22px;
 }
 
+.reveal-head-animated {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.reveal-controls,
+.reveal-mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reveal-controls {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.reveal-speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.reveal-speed select {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 4px 7px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reveal-fixture {
+  animation: revealCardIn 0.35s ease both;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.reveal-fixture.is-current {
+  box-shadow: inset 4px 0 0 var(--accent), var(--hard-shadow);
+}
+
+.reveal-score {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 10px;
+}
+
+.reveal-score > span:not(.fixture-clock) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reveal-score strong.is-pending {
+  color: var(--muted);
+  letter-spacing: 0.14em;
+}
+
+.score-snap {
+  animation: revealScoreSnap 0.46s ease-out both;
+}
+
+.score-snap-them {
+  animation: revealScoreSnapThem 0.46s ease-out both;
+}
+
+.fixture-clock {
+  display: inline-flex;
+  justify-content: flex-end;
+  min-width: 32px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.fixture-clock b {
+  border: 1px solid var(--line);
+  background: rgba(232, 70, 43, 0.08);
+  padding: 2px 5px;
+  font-size: 11px;
+}
+
+.reveal-body {
+  animation: revealFadeIn 0.28s ease both;
+}
+
+.reveal-body .goal-flow span,
+.reveal-body .group-table span:not(.eyebrow) {
+  animation: revealGoalIn 0.26s ease both;
+}
+
+.reveal-body.is-instant,
+.reveal-body.is-instant .goal-flow span,
+.reveal-body.is-instant .group-table span:not(.eyebrow) {
+  animation: none;
+}
+
+.penalty-flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.penalty-flow span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.penalty-flow .made {
+  color: var(--win);
+  border-color: var(--win);
+}
+
+.penalty-flow .missed {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.penalty-flow em {
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+@keyframes revealCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes revealFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes revealGoalIn {
+  from {
+    opacity: 0;
+    transform: translateX(-7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes revealScoreSnap {
+  0% {
+    transform: scale(1.45);
+    filter: brightness(1.7);
+  }
+  65% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+@keyframes revealScoreSnapThem {
+  0% {
+    color: var(--accent);
+    transform: scale(1.45);
+    filter: brightness(1.7);
+  }
+  65% {
+    color: var(--accent);
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .reveal-head-animated {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reveal-controls {
+    justify-content: flex-start;
+  }
+
+  .reveal-score {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) 30px;
+    gap: 7px;
+  }
+
+  .fixture-clock {
+    min-width: 28px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-body,
+  .reveal-body .goal-flow span,
+  .reveal-body .group-table span:not(.eyebrow),
+  .reveal-fixture,
+  .score-snap,
+  .score-snap-them {
+    animation: none !important;
+  }
+}
+
 .site-footer {
   position: relative;
   z-index: 10;

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import type { Draft, DraftOptions, Locale, Player, SharePayload, SquadFile } from "@/lib/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { CampaignMatch, Draft, DraftOptions, Locale, Player, SharePayload, SquadFile } from "@/lib/types";
 import {
   availablePositions,
   calculateStats,
@@ -32,6 +32,108 @@ import { ResultCard } from "./ResultCard";
 
 type Phase = "drafting" | "revealing" | "result";
 type DrawPair = { sel: string; copa: number };
+type RevealMode = "manual" | "auto";
+type RevealSpeed = "slow" | "normal" | "fast" | "ultra";
+
+const revealSpeeds: Record<RevealSpeed, number> = {
+  slow: 300,
+  normal: 150,
+  fast: 50,
+  ultra: 15,
+};
+
+const revealSpeedKeys = Object.keys(revealSpeeds) as RevealSpeed[];
+const revealKickoffDelay = 1390;
+const revealControlLabels: Record<
+  Locale,
+  {
+    modeManual: string;
+    modeAuto: string;
+    speedLabel: string;
+    speedSlow: string;
+    speedNormal: string;
+    speedFast: string;
+    speedUltra: string;
+  }
+> = {
+  pt: {
+    modeManual: "Jogo a jogo",
+    modeAuto: "Automático",
+    speedLabel: "Velocidade",
+    speedSlow: "Lento",
+    speedNormal: "Normal",
+    speedFast: "Rápida",
+    speedUltra: "Ultra",
+  },
+  en: {
+    modeManual: "Match by match",
+    modeAuto: "Automatic",
+    speedLabel: "Speed",
+    speedSlow: "Slow",
+    speedNormal: "Normal",
+    speedFast: "Fast",
+    speedUltra: "Ultra",
+  },
+  es: {
+    modeManual: "Partido a partido",
+    modeAuto: "Automático",
+    speedLabel: "Velocidad",
+    speedSlow: "Lento",
+    speedNormal: "Normal",
+    speedFast: "Rápido",
+    speedUltra: "Ultra",
+  },
+};
+
+function stoppageMinutes(gf: number, ga: number, index: number) {
+  return [1 + ((2 * gf + 3 * ga + index + 1) % 5), 1 + ((3 * gf + 2 * ga + index) % 5)] as const;
+}
+
+function revealTiming(msPerMin: number, firstHalfExtra: number, secondHalfExtra: number) {
+  const halfBreak = Math.round(10 * msPerMin);
+  const p1End = 45 * msPerMin;
+  const p2End = p1End + firstHalfExtra * msPerMin;
+  const p3End = p2End + halfBreak;
+  const p4End = p3End + 44 * msPerMin;
+  const p5End = p4End + secondHalfExtra * msPerMin;
+  return { p1End, p2End, p3End, p4End, p5End };
+}
+
+function revealExtraDuration(match: CampaignMatch, msPerMin: number) {
+  if (match.penalties) {
+    return 2 * Math.max(match.penalties.me.length, match.penalties.them.length) * Math.round((1200 * msPerMin) / revealSpeeds.normal) + 520;
+  }
+  if (match.groupTable) return 210 * match.groupTable.length + 520;
+  return 520;
+}
+
+function revealDuration(match: CampaignMatch, msPerMin: number, index: number) {
+  const [firstHalfExtra, secondHalfExtra] = stoppageMinutes(match.gf, match.ga, index);
+  return revealKickoffDelay + revealTiming(msPerMin, firstHalfExtra, secondHalfExtra).p5End + 600 + revealExtraDuration(match, msPerMin);
+}
+
+function clockFromElapsed(elapsed: number, msPerMin: number, firstHalfExtra: number, secondHalfExtra: number) {
+  const timing = revealTiming(msPerMin, firstHalfExtra, secondHalfExtra);
+  if (elapsed < 0) return { minute: 0, label: "" };
+  if (elapsed < timing.p1End) {
+    const minute = Math.min(Math.floor(elapsed / msPerMin) + 1, 45);
+    return { minute, label: String(minute) };
+  }
+  if (elapsed < timing.p2End) {
+    const extra = Math.min(Math.floor((elapsed - timing.p1End) / msPerMin) + 1, firstHalfExtra);
+    return { minute: 45, label: `45+${extra}` };
+  }
+  if (elapsed < timing.p3End) return { minute: 45, label: `45+${firstHalfExtra}` };
+  if (elapsed < timing.p4End) {
+    const minute = Math.min(46 + Math.floor((elapsed - timing.p3End) / msPerMin), 90);
+    return { minute, label: String(minute) };
+  }
+  if (elapsed < timing.p5End) {
+    const extra = Math.min(Math.floor((elapsed - timing.p4End) / msPerMin) + 1, secondHalfExtra);
+    return { minute: 90, label: `90+${extra}` };
+  }
+  return { minute: 90, label: `90+${secondHalfExtra}` };
+}
 
 function AdStrip({ locale }: { locale: Locale }) {
   const labels =
@@ -314,6 +416,8 @@ function SetupControls({
   );
 }
 
+// Kept temporarily as a reference for the simpler non-animated reveal.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RevealView({
   locale,
   result,
@@ -384,6 +488,253 @@ function RevealView({
   );
 }
 
+function AnimatedRevealView({
+  locale,
+  result,
+  draft,
+  onDone,
+}: {
+  locale: Locale;
+  result: NonNullable<ReturnType<typeof simulateCampaign>>;
+  draft: Draft;
+  onDone: () => void;
+}) {
+  const t = messages[locale];
+  const controls = revealControlLabels[locale];
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [readyForNext, setReadyForNext] = useState(true);
+  const [mode, setMode] = useState<RevealMode>(() =>
+    typeof window !== "undefined" && localStorage.getItem("s70-reveal") === "auto" ? "auto" : "manual",
+  );
+  const [speed, setSpeed] = useState<RevealSpeed>(() => {
+    if (typeof window === "undefined") return "normal";
+    const savedSpeed = localStorage.getItem("7a0-speed");
+    return savedSpeed && revealSpeedKeys.includes(savedSpeed as RevealSpeed) ? (savedSpeed as RevealSpeed) : "normal";
+  });
+  const [reducedMotion, setReducedMotion] = useState(
+    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true,
+  );
+  const visible = result.campaign.slice(0, visibleCount);
+  const done = visibleCount >= result.campaign.length;
+  const msPerMin = revealSpeeds[speed];
+
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!media) return;
+    const updateReducedMotion = () => setReducedMotion(media.matches);
+    media.addEventListener("change", updateReducedMotion);
+    return () => media.removeEventListener("change", updateReducedMotion);
+  }, []);
+
+  const revealNext = useCallback(() => {
+    if (!readyForNext || visibleCount >= result.campaign.length) return;
+    const nextIndex = visibleCount;
+    setVisibleCount(nextIndex + 1);
+    setActiveIndex(nextIndex);
+    if (reducedMotion) {
+      setReadyForNext(true);
+      return;
+    }
+    setReadyForNext(false);
+  }, [readyForNext, reducedMotion, result.campaign, visibleCount]);
+
+  useEffect(() => {
+    if (readyForNext || activeIndex < 0 || reducedMotion) return;
+    const match = result.campaign[activeIndex];
+    if (!match) return;
+    const timer = window.setTimeout(() => {
+      setReadyForNext(true);
+    }, revealDuration(match, msPerMin, activeIndex));
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, msPerMin, readyForNext, reducedMotion, result.campaign]);
+
+  useEffect(() => {
+    if (mode !== "auto" || !readyForNext || done) return;
+    const timer = window.setTimeout(() => {
+      revealNext();
+    }, visibleCount === 0 ? 300 : 350);
+    return () => window.clearTimeout(timer);
+  }, [done, mode, readyForNext, revealNext, visibleCount]);
+
+  function setRevealMode(next: RevealMode) {
+    setMode(next);
+    localStorage.setItem("s70-reveal", next);
+  }
+
+  function setRevealSpeed(next: RevealSpeed) {
+    setSpeed(next);
+    localStorage.setItem("7a0-speed", next);
+  }
+
+  return (
+    <main className="reveal-wrap tx-paper">
+      <section className="reveal-head reveal-head-animated">
+        <div>
+          <span className="eyebrow">
+            {t.reveal.yourTeam} / seed #{draft.seed.toUpperCase()}
+          </span>
+          <h1>{result.champion && done ? t.reveal.titleChampion : t.reveal.titleDefault}</h1>
+        </div>
+        <div className="reveal-controls">
+          <div className="reveal-mode" role="group" aria-label={controls.modeManual}>
+            {(["manual", "auto"] as const).map((option) => (
+              <button
+                className={`chip ${mode === option ? "is-active" : ""}`}
+                key={option}
+                onClick={() => setRevealMode(option)}
+                type="button"
+                aria-pressed={mode === option}
+              >
+                {option === "manual" ? controls.modeManual : controls.modeAuto}
+              </button>
+            ))}
+          </div>
+          <label className="reveal-speed">
+            <span className="eyebrow">{controls.speedLabel}</span>
+            <select value={speed} onChange={(event) => setRevealSpeed(event.target.value as RevealSpeed)}>
+              {revealSpeedKeys.map((option) => (
+                <option value={option} key={option}>
+                  {controls[`speed${option[0].toUpperCase()}${option.slice(1)}` as keyof typeof controls]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+      <div className="fixture-list">
+        {visible.map((match, index) => (
+          <AnimatedFixture
+            active={index === activeIndex}
+            instant={reducedMotion || index !== activeIndex}
+            index={index}
+            key={`${match.phase}-${index}`}
+            locale={locale}
+            match={match}
+            msPerMin={msPerMin}
+          />
+        ))}
+      </div>
+      {readyForNext && (
+        <button className="btn btn-primary reveal-next" onClick={done ? onDone : revealNext} type="button">
+          {done ? t.reveal.card : visibleCount === 0 ? t.reveal.first : t.reveal.next}
+        </button>
+      )}
+    </main>
+  );
+}
+
+function AnimatedFixture({
+  active,
+  instant,
+  index,
+  locale,
+  match,
+  msPerMin,
+}: {
+  active: boolean;
+  instant: boolean;
+  index: number;
+  locale: Locale;
+  match: CampaignMatch;
+  msPerMin: number;
+}) {
+  const t = messages[locale];
+  const [firstHalfExtra, secondHalfExtra] = stoppageMinutes(match.gf, match.ga, index);
+  const timing = revealTiming(msPerMin, firstHalfExtra, secondHalfExtra);
+  const [elapsed, setElapsed] = useState(instant ? timing.p5End : -1);
+
+  useEffect(() => {
+    if (!active || instant) {
+      const resetTimer = window.setTimeout(() => setElapsed(timing.p5End), 0);
+      return () => window.clearTimeout(resetTimer);
+    }
+    const resetTimer = window.setTimeout(() => setElapsed(-1), 0);
+    const startedAt = Date.now();
+    const interval = window.setInterval(() => {
+      const next = Date.now() - startedAt - revealKickoffDelay;
+      setElapsed(Math.max(-1, next));
+      if (next >= timing.p5End) window.clearInterval(interval);
+    }, 60);
+    return () => {
+      window.clearTimeout(resetTimer);
+      window.clearInterval(interval);
+    };
+  }, [active, instant, timing.p5End]);
+
+  const inProgress = active && !instant && elapsed < timing.p5End;
+  const pending = active && !instant && elapsed < 0;
+  const clock = clockFromElapsed(elapsed, msPerMin, firstHalfExtra, secondHalfExtra);
+  const visibleGoals = inProgress ? match.minutes.filter((goal) => goal.minute <= clock.minute) : match.minutes;
+  const liveGf = inProgress ? visibleGoals.filter((goal) => goal.side === "me").length : match.gf;
+  const liveGa = inProgress ? visibleGoals.filter((goal) => goal.side === "them").length : match.ga;
+  const latestGoal = visibleGoals.at(-1);
+  const showFinal = !pending && !inProgress;
+  const mark = match.phase === "FINAL" && match.advanced ? "*" : match.advanced ? "V" : "X";
+
+  return (
+    <article className={`fixture-card sticker reveal-fixture ${match.advanced ? "is-win" : "is-loss"} ${active ? "is-current" : ""}`}>
+      <div className="fixture-top">
+        <span className="eyebrow">{match.phase}</span>
+        <span className="num">{match.opponentOverall}</span>
+      </div>
+      <div className="fixture-score reveal-score">
+        <span>{t.reveal.yourTeam}</span>
+        <strong
+          className={`num ${pending ? "is-pending" : ""} ${latestGoal?.side === "them" ? "score-snap-them" : "score-snap"}`}
+          key={pending ? "pending" : `${liveGf}-${liveGa}`}
+        >
+          {pending ? "· · ·" : `${liveGf}–${liveGa}`}
+        </strong>
+        <span>{match.opponent}</span>
+        <span className="fixture-clock">
+          {showFinal ? mark : clock.label ? <b className="num">{clock.label}&apos;</b> : ""}
+        </span>
+      </div>
+      {!pending && (
+        <div className={`reveal-body ${instant ? "is-instant" : ""}`}>
+          <div className="goal-flow">
+            {visibleGoals.map((goal, goalIndex) => (
+              <span key={`${goal.name}-${goal.minute}-${goalIndex}`} className={goal.side} style={instant ? undefined : { animationDelay: `${goalIndex * 0.08}s` }}>
+                <b className="num">{goal.minute}&apos;</b> {goal.name}
+              </span>
+            ))}
+          </div>
+          {showFinal && match.penalties && (
+            <div className="fixture-pen">
+              <span className="eyebrow">{t.reveal.penalties}</span>
+              <span className="num">{match.penalties.score}</span>
+              <div className="penalty-flow">
+                {match.penalties.me.map((kick, kickIndex) => (
+                  <span className={kick ? "made" : "missed"} key={`me-${kickIndex}`}>
+                    {kick ? "●" : "×"}
+                  </span>
+                ))}
+                <em>vs</em>
+                {match.penalties.them.map((kick, kickIndex) => (
+                  <span className={kick ? "made" : "missed"} key={`them-${kickIndex}`}>
+                    {kick ? "●" : "×"}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {showFinal && match.groupTable && (
+            <div className="group-table">
+              <span className="eyebrow">{t.reveal.group}</span>
+              {match.groupTable.map((row, rowIndex) => (
+                <span className={row.me ? "me" : ""} key={`${row.label}-${rowIndex}`} style={instant ? undefined : { animationDelay: `${rowIndex * 0.09}s` }}>
+                  {rowIndex + 1}. {row.label} <b>{row.pts}</b>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </article>
+  );
+}
+
 async function loadOpponentSquads(seed: string, selected: Player[]) {
   const random = rng(`${seed}:opponents`);
   const used = new Set(selected.map((player) => `${player.sel}:${player.copa}`));
@@ -424,7 +775,6 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
   const [isRolling, setIsRolling] = useState(false);
   const [phase, setPhase] = useState<Phase>("drafting");
   const [result, setResult] = useState<ReturnType<typeof simulateCampaign> | null>(null);
-  const [revealIndex, setRevealIndex] = useState(0);
   const [loading, setLoading] = useState(Boolean(sharedCode));
   const complete = draft.filled.every(Boolean);
 
@@ -545,7 +895,6 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
     const opponents = await loadOpponentSquads(draft.seed, selectedPlayers);
     const sim = simulateCampaign(draft.seed, draft, opponents);
     setResult(sim);
-    setRevealIndex(0);
     setPhase("revealing");
   }
 
@@ -563,15 +912,11 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
 
   if (phase === "revealing" && result) {
     return (
-      <RevealView
+      <AnimatedRevealView
         locale={locale}
         result={result}
         draft={draft}
-        revealIndex={revealIndex}
-        onNext={() => {
-          if (revealIndex >= result.campaign.length - 1) setPhase("result");
-          else setRevealIndex((index) => index + 1);
-        }}
+        onDone={() => setPhase("result")}
       />
     );
   }
