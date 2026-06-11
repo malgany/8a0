@@ -1,0 +1,38 @@
+{
+  "origin": "https://7a0.com.br",
+  "syncedAt": "2026-06-11T19:29:54.687Z",
+  "pages": [
+    "https://7a0.com.br/en",
+    "https://7a0.com.br/en/play",
+    "https://7a0.com.br/en/privacidade"
+  ],
+  "assets": [
+    "/_next/static/media/03f2d74f5e7b171e-s.p.woff2",
+    "/_next/static/media/1a4aa50920b5315c-s.p.woff2",
+    "/_next/static/media/313510e2713fb214-s.p.woff2",
+    "/_next/static/media/36966cca54120369-s.p.woff2",
+    "/_next/static/media/62c97acc3aa63787-s.p.woff2",
+    "/_next/static/media/bd9b9909c3a641ff-s.p.woff2",
+    "/_next/static/css/025cb3e35baa07bd.css",
+    "/_next/static/css/1e884b1ce1c2f373.css",
+    "/_next/static/css/f4a9c458a5504d03.css",
+    "/_next/static/css/15d8e601cb78d29d.css",
+    "/favicon.ico",
+    "/icon.svg?e474f8618e9a041d",
+    "/_next/static/media/6ced06489fd81a3f-s.woff2",
+    "/_next/static/media/aa5f74293546f6d0-s.woff2",
+    "/_next/static/media/b06b356f834173cc-s.woff2",
+    "/_next/static/media/23d669af23d19c95-s.woff2",
+    "/_next/static/media/a6c19694cd327cd4-s.woff2",
+    "/_next/static/media/851c4691abdf3def-s.woff2",
+    "/_next/static/media/a8a8dd7277bab4cf-s.woff2",
+    "/_next/static/media/b3097673cd409a21-s.woff2",
+    "/_next/static/media/2409d02eaee47cb9-s.woff2",
+    "/_next/static/media/b72a6a678d511e3a-s.woff2",
+    "/_next/static/media/a33a3f3323a75998-s.woff2",
+    "/_next/static/media/e1aab0933260df4d-s.woff2",
+    "/_next/static/media/b7387a63dd068245-s.woff2"
+  ],
+  "squads": 250,
+  "playChunk": "/_next/static/chunks/app/%5Blocale%5D/play/page-d7a22da6d668080b.js"
+}

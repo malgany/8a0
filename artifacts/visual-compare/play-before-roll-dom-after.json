@@ -1,0 +1,543 @@
+{
+  "official": {
+    "url": "https://7a0.com.br/play",
+    "title": "7a0 — Sete a Zero",
+    "htmlClass": "theme-panini __variable_ec6dc7 __variable_334670 __variable_4c2918 __variable_4b3a9b __variable_48cfcd __variable_bb2e19",
+    "bodyText": [
+      "7",
+      "–",
+      "0",
+      "SETE",
+      "A ZERO",
+      "MONTE · SIMULE · 7 A 0",
+      "4-3-3 · EQUILIBRADO · CLÁSSICO",
+      "AJUSTES ▾",
+      "FORMAÇÃO",
+      "4-3-3",
+      "4-4-2",
+      "4-2-3-1",
+      "4-2-4",
+      "3-5-2",
+      "5-3-2",
+      "4-5-1",
+      "3-4-3",
+      "ESTILO",
+      "Defensivo",
+      "Equilibrado",
+      "Ofensivo",
+      "MODO · DIFICULDADE",
+      "Clássico",
+      "De almanaque",
+      "Role para sortear uma seleção e uma Copa do Mundo",
+      "ROLAR",
+      "🎲",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "GOL",
+      "LD",
+      "ZAG",
+      "ZAG",
+      "LE",
+      "VOL",
+      "MC",
+      "MEI",
+      "PD",
+      "CA",
+      "PE",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "BOX SCORE · 0/11",
+      "—",
+      "—",
+      "ATAQUE",
+      "—",
+      "DEFESA",
+      "GOL\t—",
+      "LD\t—",
+      "ZAG\t—",
+      "ZAG\t—",
+      "LE\t—",
+      "VOL\t—",
+      "MC\t—",
+      "MEI\t—",
+      "PD\t—",
+      "CA\t—",
+      "PE\t—",
+      "APOIE O 7A0",
+      "7A0 — SETE A ZERO · MONTE · SIMULE · 7 A 0 · PRIVACIDADE"
+    ],
+    "viewport": {
+      "w": 1280,
+      "h": 720,
+      "scrollY": 0
+    },
+    "rects": {
+      "header": {
+        "x": 50,
+        "y": 0,
+        "w": 1180,
+        "h": 108
+      },
+      "layout": {
+        "x": 50,
+        "y": 108,
+        "w": 1180,
+        "h": 719
+      },
+      "roll": {
+        "x": 50,
+        "y": 108,
+        "w": 320,
+        "h": 719
+      },
+      "setup": {
+        "x": 72,
+        "y": 130,
+        "w": 274,
+        "h": 432
+      },
+      "pitchOuter": {
+        "x": 390,
+        "y": 128,
+        "w": 520,
+        "h": 560
+      },
+      "pitchWrap": {
+        "x": 390,
+        "y": 163,
+        "w": 520,
+        "h": 490
+      },
+      "pitch": {
+        "x": 390,
+        "y": 163,
+        "w": 520,
+        "h": 490
+      },
+      "box": {
+        "x": 930,
+        "y": 108,
+        "w": 300,
+        "h": 719
+      },
+      "boxPanel": {
+        "x": 954,
+        "y": 130,
+        "w": 254,
+        "h": 454
+      },
+      "rollPanel": {
+        "x": 72,
+        "y": 578,
+        "w": 274,
+        "h": 227
+      },
+      "rollIdle": {
+        "x": 72,
+        "y": 578,
+        "w": 274,
+        "h": 126
+      },
+      "rollButton": {
+        "x": 68,
+        "y": 718,
+        "w": 282,
+        "h": 88
+      },
+      "profile": {
+        "x": 1043,
+        "y": 32,
+        "w": 44,
+        "h": 40
+      }
+    },
+    "styles": {
+      "body": {
+        "background": "rgb(243, 236, 216)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "0px",
+        "margin": "0px",
+        "borderBottom": "0px none rgb(27, 26, 23)"
+      },
+      "header": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "flex",
+        "gridTemplateColumns": "none",
+        "padding": "18px 28px",
+        "margin": "0px 50px",
+        "borderBottom": "3px solid rgb(27, 26, 23)"
+      },
+      "layout": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "grid",
+        "gridTemplateColumns": "320px 560px 300px",
+        "padding": "0px",
+        "margin": "0px 50px",
+        "borderBottom": "0px none rgb(27, 26, 23)"
+      },
+      "setup": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "flex",
+        "gridTemplateColumns": "none",
+        "padding": "16px 18px",
+        "margin": "0px 0px 16px",
+        "borderBottom": "6px solid rgb(255, 255, 255)"
+      },
+      "rollIdle": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(107, 100, 82)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "24px",
+        "margin": "0px",
+        "borderBottom": "2px dashed rgb(216, 207, 180)"
+      },
+      "rollButton": {
+        "background": "rgb(232, 70, 43)",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Anton, \"Anton Fallback\", sans-serif",
+        "fontSize": "30px",
+        "display": "flex",
+        "gridTemplateColumns": "none",
+        "padding": "20px 40px",
+        "margin": "0px",
+        "borderBottom": "0px none rgb(255, 255, 255)"
+      },
+      "pitch": {
+        "background": "rgb(47, 125, 79)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "0px",
+        "margin": "0px",
+        "borderBottom": "4px solid rgba(255, 255, 255, 0.3)"
+      },
+      "box": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "0px",
+        "margin": "0px",
+        "borderBottom": "0px none rgb(27, 26, 23)"
+      }
+    },
+    "counts": {
+      "chips": 13,
+      "discs": 11,
+      "discNames": 0,
+      "boxRows": 11,
+      "rollButtons": 1,
+      "adStrips": 2
+    }
+  },
+  "local": {
+    "url": "http://127.0.0.1:3000/play",
+    "title": "7a0 — Sete a Zero",
+    "htmlClass": "theme-panini __variable_ec6dc7 __variable_334670 __variable_4c2918 __variable_4b3a9b __variable_48cfcd __variable_bb2e19",
+    "bodyText": [
+      "7",
+      "–",
+      "0",
+      "SETE",
+      "A ZERO",
+      "MONTE · SIMULE · 7 A 0",
+      "4-3-3 · EQUILIBRADO · CLÁSSICO",
+      "AJUSTES",
+      "▾",
+      "FORMAÇÃO",
+      "4-3-3",
+      "4-4-2",
+      "4-2-3-1",
+      "4-2-4",
+      "3-5-2",
+      "5-3-2",
+      "4-5-1",
+      "3-4-3",
+      "ESTILO",
+      "Defensivo",
+      "Equilibrado",
+      "Ofensivo",
+      "MODO · DIFICULDADE",
+      "Clássico",
+      "De almanaque",
+      "Role para sortear uma seleção e uma Copa do Mundo",
+      "ROLAR",
+      "🎲",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "GOL",
+      "LD",
+      "ZAG",
+      "ZAG",
+      "LE",
+      "VOL",
+      "MC",
+      "MEI",
+      "PD",
+      "CA",
+      "PE",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "CONTATO",
+      "·",
+      "ANUNCIE AQUI",
+      "·",
+      "BOX SCORE · 0/11",
+      "—",
+      "—",
+      "ATAQUE",
+      "—",
+      "DEFESA",
+      "GOL\t—",
+      "LD\t—",
+      "ZAG\t—",
+      "ZAG\t—",
+      "LE\t—",
+      "VOL\t—",
+      "MC\t—",
+      "MEI\t—",
+      "PD\t—",
+      "CA\t—",
+      "PE\t—"
+    ],
+    "viewport": {
+      "w": 1280,
+      "h": 720,
+      "scrollY": 0
+    },
+    "rects": {
+      "header": {
+        "x": 50,
+        "y": 0,
+        "w": 1180,
+        "h": 108
+      },
+      "layout": {
+        "x": 50,
+        "y": 108,
+        "w": 1180,
+        "h": 719
+      },
+      "roll": {
+        "x": 50,
+        "y": 108,
+        "w": 320,
+        "h": 719
+      },
+      "setup": {
+        "x": 72,
+        "y": 130,
+        "w": 274,
+        "h": 432
+      },
+      "pitchOuter": {
+        "x": 390,
+        "y": 128,
+        "w": 520,
+        "h": 560
+      },
+      "pitchWrap": {
+        "x": 390,
+        "y": 163,
+        "w": 520,
+        "h": 490
+      },
+      "pitch": {
+        "x": 390,
+        "y": 163,
+        "w": 520,
+        "h": 490
+      },
+      "box": {
+        "x": 930,
+        "y": 108,
+        "w": 300,
+        "h": 719
+      },
+      "boxPanel": {
+        "x": 954,
+        "y": 130,
+        "w": 254,
+        "h": 454
+      },
+      "rollPanel": {
+        "x": 72,
+        "y": 578,
+        "w": 274,
+        "h": 227
+      },
+      "rollIdle": {
+        "x": 72,
+        "y": 578,
+        "w": 274,
+        "h": 126
+      },
+      "rollButton": {
+        "x": 70,
+        "y": 719,
+        "w": 279,
+        "h": 87
+      },
+      "profile": {
+        "x": 1041,
+        "y": 32,
+        "w": 44,
+        "h": 40
+      }
+    },
+    "styles": {
+      "body": {
+        "background": "rgb(243, 236, 216)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "0px",
+        "margin": "0px",
+        "borderBottom": "0px none rgb(27, 26, 23)"
+      },
+      "header": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "flex",
+        "gridTemplateColumns": "none",
+        "padding": "18px 28px",
+        "margin": "0px 50px",
+        "borderBottom": "3px solid rgb(27, 26, 23)"
+      },
+      "layout": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "grid",
+        "gridTemplateColumns": "320px 560px 300px",
+        "padding": "0px",
+        "margin": "0px 50px",
+        "borderBottom": "0px none rgb(27, 26, 23)"
+      },
+      "setup": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "flex",
+        "gridTemplateColumns": "none",
+        "padding": "16px 18px",
+        "margin": "0px 0px 16px",
+        "borderBottom": "6px solid rgb(255, 255, 255)"
+      },
+      "rollIdle": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(107, 100, 82)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "24px",
+        "margin": "0px",
+        "borderBottom": "2px dashed rgb(216, 207, 180)"
+      },
+      "rollButton": {
+        "background": "rgb(232, 70, 43)",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Anton, \"Anton Fallback\", sans-serif",
+        "fontSize": "30px",
+        "display": "flex",
+        "gridTemplateColumns": "none",
+        "padding": "20px 40px",
+        "margin": "0px",
+        "borderBottom": "0px none rgb(255, 255, 255)"
+      },
+      "pitch": {
+        "background": "rgb(47, 125, 79)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "0px",
+        "margin": "0px",
+        "borderBottom": "3px solid rgba(255, 255, 255, 0.3)"
+      },
+      "box": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(27, 26, 23)",
+        "fontFamily": "\"Hanken Grotesk\", \"Hanken Grotesk Fallback\", sans-serif",
+        "fontSize": "16px",
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "padding": "0px",
+        "margin": "0px",
+        "borderBottom": "0px none rgb(27, 26, 23)"
+      }
+    },
+    "counts": {
+      "chips": 13,
+      "discs": 11,
+      "discNames": 0,
+      "boxRows": 11,
+      "rollButtons": 1,
+      "adStrips": 2
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "url": "https://7a0.com.br/",
+  "title": "7a0 — Sete a Zero",
+  "text": "PERFIL\nAJUSTES ▾\nCOPA DOS SONHOS · 1950 — 2026\n7\n–\n0\nRole o dado.\nMonte sua seleção\ndos sonhos\n\nRole o dado: sai uma seleção e uma Copa. Escale um craque que esteve lá, complete os 11 e simule — seu time faz 7 a 0?\n\nJOGAR AGORA →\nCOM AMIGOS\nNOVO\n1\nNeuer\n4\nC. Alberto\n5\nBeckenbauer\n6\nMoore\n6\nR. Carlos\n8\nGérson\n10\nPelé\n10\nMaradona\n10\nMessi\n9\nRonaldo\n7\nC. Ronaldo\n01\nROLE\nSorteia uma seleção e uma Copa\n02\nMONTE\nEscale um craque que jogou ali\n03\nSIMULE\nVeja se seu time faz 7 a 0\n52\nseleções\n·\n250\nelencos\n·\n5.729\njogadores\n·\nDiscorda de alguma avaliação?\nAPOIE O 7A0\n7A0 — SETE A ZERO · MONTE · SIMULE · 7 A 0 · PRIVACIDADE",
+  "bodyClass": "theme-panini __variable_ec6dc7 __variable_334670 __variable_4c2918 __variable_4b3a9b __variable_48cfcd __variable_bb2e19",
+  "links": [
+    {
+      "text": "",
+      "href": "https://7a0.com.br/cdn-cgi/content?id=nj1dNksEvfPFQJrAuV0ckR4KQ9yDKSrQCG28iiG1358-1781209953.0545425-1.2.1.1-Khn_lUY1mNP.l8QY27GgOL08fOU4_G.vREAbjWiRj_U",
+      "cls": ""
+    },
+    {
+      "text": "Perfil",
+      "href": "https://7a0.com.br/perfil",
+      "cls": "profile-link"
+    },
+    {
+      "text": "Jogar agora →",
+      "href": "https://7a0.com.br/play",
+      "cls": "btn btn-primary home-cta-main"
+    },
+    {
+      "text": "Com amigosNovo",
+      "href": "https://7a0.com.br/multi",
+      "cls": "btn btn-secondary home-cta-multi"
+    },
+    {
+      "text": "Apoie o 7a0",
+      "href": "https://ko-fi.com/7a0wc",
+      "cls": "kofi-btn"
+    },
+    {
+      "text": "Privacidade",
+      "href": "https://7a0.com.br/privacidade",
+      "cls": "footer-link"
+    }
+  ],
+  "buttons": [
+    {
+      "text": "Ajustes ▾",
+      "cls": "theme-toggle settings-btn"
+    },
+    {
+      "text": "Discorda de alguma avaliação?",
+      "cls": "contest-link"
+    }
+  ]
+}

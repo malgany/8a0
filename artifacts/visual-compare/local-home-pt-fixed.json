@@ -1,0 +1,494 @@
+{
+  "bodyBg": "rgb(243, 236, 216)",
+  "counts": {
+    "buttons": [
+      {
+        "aria": null,
+        "cls": "theme-toggle settings-btn",
+        "text": "AJUSTES ▾"
+      },
+      {
+        "aria": null,
+        "cls": "contest-link",
+        "text": "Discorda de alguma avaliação?"
+      }
+    ],
+    "links": [
+      {
+        "cls": "profile-link",
+        "href": "/perfil",
+        "text": "PERFIL"
+      },
+      {
+        "cls": "btn btn-primary home-cta-main",
+        "href": "/play",
+        "text": "JOGAR AGORA →"
+      },
+      {
+        "cls": "btn btn-secondary home-cta-multi",
+        "href": "/multi",
+        "text": "COM AMIGOS NOVO"
+      },
+      {
+        "cls": "kofi-btn",
+        "href": "https://ko-fi.com/7a0wc",
+        "text": "APOIE O 7A0"
+      },
+      {
+        "cls": "footer-link",
+        "href": "/privacidade",
+        "text": "PRIVACIDADE"
+      }
+    ],
+    "playerPins": 0,
+    "stepItems": 0
+  },
+  "elements": {
+    "ctas": {
+      "rect": {
+        "h": 72,
+        "w": 536,
+        "x": 99,
+        "y": 725
+      },
+      "selector": ".home-ctas",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "18px",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "div",
+      "text": "JOGAR AGORA → COM AMIGOS NOVO"
+    },
+    "eyebrow": {
+      "rect": {
+        "h": 14,
+        "w": 536,
+        "x": 99,
+        "y": 88
+      },
+      "selector": ".eyebrow",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(107, 100, 82)",
+        "display": "block",
+        "fontSize": "11px",
+        "fontWeight": "800",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "span",
+      "text": "COPA DOS SONHOS · 1950 — 2026"
+    },
+    "foot": {
+      "rect": {
+        "h": 32,
+        "w": 1068,
+        "x": 99,
+        "y": 967
+      },
+      "selector": ".home-foot",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "center",
+        "padding": "0px 0px 10px"
+      },
+      "tag": "footer",
+      "text": "52 seleções · 250 elencos · 5.729 jogadores · Discorda de alguma avaliação?"
+    },
+    "grid": {
+      "rect": {
+        "h": 717,
+        "w": 1068,
+        "x": 99,
+        "y": 80
+      },
+      "selector": ".home-grid",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "grid",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "48px",
+        "justifyContent": "normal",
+        "padding": "8px 0px 0px"
+      },
+      "tag": "div",
+      "text": "COPA DOS SONHOS · 1950 — 2026 7 – 0 Role o dado. Monte sua seleção dos sonhos Role o dado: sai uma seleção e uma Copa. Escale um craque que esteve lá, complete os 11 e simule — seu time faz 7 a 0? JOGAR AGORA → COM AMIGOS NOVO 1 Neuer 4 C. Alberto 5 Beckenbauer 6 Moore 6 R. Carlos 8 Gérson 10 Pelé 10 Maradona 10 Messi 9 Ronaldo 7 C. Ronaldo"
+    },
+    "head": {
+      "rect": {
+        "h": 56,
+        "w": 1068,
+        "x": 99,
+        "y": 24
+      },
+      "selector": ".home-head",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "justifyContent": "flex-end",
+        "padding": "0px 0px 16px"
+      },
+      "tag": "header",
+      "text": "PERFIL AJUSTES ▾"
+    },
+    "headline": {
+      "rect": {
+        "h": 161,
+        "w": 536,
+        "x": 99,
+        "y": 372
+      },
+      "selector": ".home-headline",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "block",
+        "fontSize": "56px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "h1",
+      "text": "Role o dado. Monte sua seleção dos sonhos"
+    },
+    "hero": {
+      "rect": {
+        "h": 709,
+        "w": 536,
+        "x": 99,
+        "y": 88
+      },
+      "selector": ".home-hero",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "section",
+      "text": "COPA DOS SONHOS · 1950 — 2026 7 – 0 Role o dado. Monte sua seleção dos sonhos Role o dado: sai uma seleção e uma Copa. Escale um craque que esteve lá, complete os 11 e simule — seu time faz 7 a 0? JOGAR AGORA → COM AMIGOS NOVO"
+    },
+    "mark": {
+      "rect": {
+        "h": 240,
+        "w": 542,
+        "x": 93,
+        "y": 112
+      },
+      "selector": ".home-mark",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "block",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "div",
+      "text": "7 – 0"
+    },
+    "multi": {
+      "rect": {
+        "h": 67,
+        "w": 153,
+        "x": 348,
+        "y": 728
+      },
+      "selector": ".home-cta-multi",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "2px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "justifyContent": "center",
+        "padding": "16px 24px"
+      },
+      "tag": "a",
+      "text": "COM AMIGOS NOVO"
+    },
+    "nav": {
+      "rect": {
+        "h": 40,
+        "w": 229,
+        "x": 937,
+        "y": 24
+      },
+      "selector": ".home-nav",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "24px",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "nav",
+      "text": "PERFIL AJUSTES ▾"
+    },
+    "pitch": {
+      "rect": {
+        "h": 480,
+        "w": 360,
+        "x": 744,
+        "y": 203
+      },
+      "selector": ".home-pitch",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "4px",
+        "color": "rgb(27, 26, 23)",
+        "display": "block",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "div",
+      "text": "1 Neuer 4 C. Alberto 5 Beckenbauer 6 Moore 6 R. Carlos 8 Gérson 10 Pelé 10 Maradona 10 Messi 9 Ronaldo 7 C. Ronaldo"
+    },
+    "preview": {
+      "rect": {
+        "h": 480,
+        "w": 485,
+        "x": 682,
+        "y": 203
+      },
+      "selector": ".home-preview",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "center",
+        "padding": "0px"
+      },
+      "tag": "aside",
+      "text": "1 Neuer 4 C. Alberto 5 Beckenbauer 6 Moore 6 R. Carlos 8 Gérson 10 Pelé 10 Maradona 10 Messi 9 Ronaldo 7 C. Ronaldo"
+    },
+    "primary": {
+      "rect": {
+        "h": 72,
+        "w": 232,
+        "x": 99,
+        "y": 725
+      },
+      "selector": ".home-cta-main",
+      "style": {
+        "alignItems": "center",
+        "background": "rgb(232, 70, 43)",
+        "borderRadius": "2px",
+        "color": "rgb(255, 255, 255)",
+        "display": "flex",
+        "fontSize": "26px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "justifyContent": "center",
+        "padding": "16px 32px"
+      },
+      "tag": "a",
+      "text": "JOGAR AGORA →"
+    },
+    "profile": {
+      "rect": {
+        "h": 40,
+        "w": 96,
+        "x": 937,
+        "y": 24
+      },
+      "selector": ".profile-link",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "999px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "12px",
+        "fontWeight": "800",
+        "gap": "7px",
+        "justifyContent": "normal",
+        "padding": "8px 14px"
+      },
+      "tag": "a",
+      "text": "PERFIL"
+    },
+    "settings": {
+      "rect": {
+        "h": 40,
+        "w": 109,
+        "x": 1057,
+        "y": 24
+      },
+      "selector": ".settings-btn",
+      "style": {
+        "alignItems": "center",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "999px",
+        "color": "rgb(27, 26, 23)",
+        "display": "inline-flex",
+        "fontSize": "12px",
+        "fontWeight": "800",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "padding": "8px 14px"
+      },
+      "tag": "button",
+      "text": "AJUSTES ▾"
+    },
+    "siteFoot": {
+      "rect": {
+        "h": 145,
+        "w": 1265,
+        "x": 0,
+        "y": 999
+      },
+      "selector": ".site-footer",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgb(243, 236, 216)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "block",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "32px"
+      },
+      "tag": "footer",
+      "text": "APOIE O 7A0 7A0 — SETE A ZERO · MONTE · SIMULE · 7 A 0 · PRIVACIDADE"
+    },
+    "steps": {
+      "rect": {
+        "h": 114,
+        "w": 1068,
+        "x": 99,
+        "y": 827
+      },
+      "selector": ".home-steps",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "grid",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "section",
+      "text": "01 ROLE Sorteia uma seleção e uma Copa 02 MONTE Escale um craque que jogou ali 03 SIMULE Veja se seu time faz 7 a 0"
+    },
+    "sub": {
+      "rect": {
+        "h": 104,
+        "w": 302,
+        "x": 99,
+        "y": 591
+      },
+      "selector": ".home-sub",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "rgb(107, 100, 82)",
+        "display": "block",
+        "fontSize": "18px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "0px"
+      },
+      "tag": "p",
+      "text": "Role o dado: sai uma seleção e uma Copa. Escale um craque que esteve lá, complete os 11 e simule — seu time faz 7 a 0?"
+    },
+    "wrap": {
+      "rect": {
+        "h": 999,
+        "w": 1180,
+        "x": 43,
+        "y": 0
+      },
+      "selector": ".home-wrap",
+      "style": {
+        "alignItems": "normal",
+        "background": "rgb(243, 236, 216)",
+        "borderRadius": "0px",
+        "color": "rgb(27, 26, 23)",
+        "display": "flex",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "justifyContent": "normal",
+        "padding": "24px 56px 0px"
+      },
+      "tag": "main",
+      "text": "PERFIL AJUSTES ▾ COPA DOS SONHOS · 1950 — 2026 7 – 0 Role o dado. Monte sua seleção dos sonhos Role o dado: sai uma seleção e uma Copa. Escale um craque que esteve lá, complete os 11 e simule — seu time faz 7 a 0? JOGAR AGORA → COM AMIGOS NOVO 1 Neuer 4 C. Alberto 5 Beckenbauer 6 Moore 6 R. Carlos 8 Gérson 10 Pelé 10 Maradona 10 Messi 9 Ronaldo 7 C. Ronaldo 01 ROLE Sorteia uma seleção e uma Copa 02 MONTE Escale um craque que jogou ali 03 SIMULE Veja se seu time faz 7 a 0 52 seleções · 250 elenco"
+    }
+  },
+  "htmlLang": "pt-BR",
+  "text": "PERFIL AJUSTES ▾ COPA DOS SONHOS · 1950 — 2026 7 – 0 Role o dado. Monte sua seleção dos sonhos Role o dado: sai uma seleção e uma Copa. Escale um craque que esteve lá, complete os 11 e simule — seu time faz 7 a 0? JOGAR AGORA → COM AMIGOS NOVO 1 Neuer 4 C. Alberto 5 Beckenbauer 6 Moore 6 R. Carlos 8 Gérson 10 Pelé 10 Maradona 10 Messi 9 Ronaldo 7 C. Ronaldo 01 ROLE Sorteia uma seleção e uma Copa 02 MONTE Escale um craque que jogou ali 03 SIMULE Veja se seu time faz 7 a 0 52 seleções · 250 elencos · 5.729 jogadores · Discorda de alguma avaliação? APOIE O 7A0 7A0 — SETE A ZERO · MONTE · SIMULE · 7 A 0 · PRIVACIDADE",
+  "title": "7a0 — Sete a Zero",
+  "url": "http://127.0.0.1:3000/",
+  "viewport": {
+    "height": 720,
+    "scrollY": 0,
+    "width": 1280
+  }
+}

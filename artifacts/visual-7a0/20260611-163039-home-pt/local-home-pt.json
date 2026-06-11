@@ -1,0 +1,33 @@
+{
+  "url": "http://127.0.0.1:3000/",
+  "title": "7a0 — Sete a Zero",
+  "text": "PT\nPT\nEN\nES\nLIGHT\nCOPA DOS SONHOS · 1950 — 2026\n7\n–\n0\nRole os dados.\nMonte sua seleção\ndos sonhos\n\n\nRole os dados: você recebe uma seleção e uma Copa. Escolha uma estrela que esteve lá, complete os 11 e simule — seu time vence de 7–0?\n\nJOGAR AGORA →\n1\nNeuer\n4\nC. Alberto\n5\nBeckenbauer\n6\nMoore\n6\nR. Carlos\n8\nGérson\n10\nPelé\n10\nMaradona\n10\nMessi\n9\nRonaldo\n7\nC. Ronaldo\n01\nROLE\nSorteia uma seleção e uma Copa\n02\nMONTE\nEscolha uma estrela que jogou ali\n03\nSIMULE\nVeja se seu time vence de 7–0\n52\nseleções\n·\n250\nelencos\n·\n5,729\njogadores\n·\nDiscorda de uma nota?\nAPOIE O 7A0\n7A0 — SETE A ZERO · MONTE · SIMULE · 7–0 · PRIVACIDADE",
+  "bodyClass": "__variable_ec6dc7 __variable_334670 __variable_4c2918 __variable_4b3a9b __variable_48cfcd __variable_bb2e19 theme-panini",
+  "links": [
+    {
+      "text": "Jogar agora →",
+      "href": "http://127.0.0.1:3000/play",
+      "cls": "btn btn-primary home-cta-main"
+    },
+    {
+      "text": "Apoie o 7a0",
+      "href": "https://ko-fi.com/7a0wc",
+      "cls": "kofi-btn"
+    },
+    {
+      "text": "Privacidade",
+      "href": "http://127.0.0.1:3000/privacidade",
+      "cls": "footer-link"
+    }
+  ],
+  "buttons": [
+    {
+      "text": "Light",
+      "cls": "theme-toggle"
+    },
+    {
+      "text": "Discorda de uma nota?",
+      "cls": "contest-link"
+    }
+  ]
+}
