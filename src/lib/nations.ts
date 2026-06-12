@@ -1,4 +1,5 @@
 import type { Locale } from "./types";
+import { flagDataUrls } from "@/data/flags";
 
 export const nationAliases: Record<string, string[]> = {
   URS: ["URS", "RUS"],
@@ -73,4 +74,8 @@ export function nationName(code: string, locale: Locale = "pt") {
 
 export function nationFlag(code: string) {
   return nations[code]?.flag ?? "";
+}
+
+export function nationFlagImageUrl(code: string) {
+  return flagDataUrls[code] ?? null;
 }

@@ -1,4 +1,5 @@
 import squadIndexRaw from "@/data/squad-index.json";
+import squadsRaw from "@/data/squads.json";
 import type {
   CampaignMatch,
   Draft,
@@ -17,6 +18,8 @@ import type {
 import { nationName } from "./nations";
 
 export const squadIndex = squadIndexRaw as SquadMeta[];
+export const squadFiles = squadsRaw as SquadFile[];
+const squadFilesByKey = new Map(squadFiles.map((squad) => [`${squad.sel}:${squad.copa}`, squad]));
 
 export const defaultOptions: DraftOptions = {
   formation: "4-3-3",
@@ -424,11 +427,9 @@ export function playerKey(player: Pick<Player, "sel" | "copa" | "playerId">) {
 }
 
 export async function fetchSquad(sel: string, copa: number): Promise<SquadFile> {
-  const meta = squadIndex.find((item) => item.sel === sel && item.copa === copa);
-  if (!meta) throw new Error(`Squad not indexed: ${sel}:${copa}`);
-  const response = await fetch(`/squads/${meta.slug}.json`);
-  if (!response.ok) throw new Error(`Failed to load squad ${meta.slug}`);
-  return (await response.json()) as SquadFile;
+  const squad = squadFilesByKey.get(`${sel}:${copa}`);
+  if (!squad) throw new Error(`Squad not indexed: ${sel}:${copa}`);
+  return squad;
 }
 
 export function findSquadMeta(sel: string, copa: number) {

@@ -1,8 +1,8 @@
-export function Logo({ subtitle = "monte · simule · 7 a 0" }: { subtitle?: string }) {
+export function Logo({ subtitle = "monte · simule · 8 a 0" }: { subtitle?: string }) {
   return (
-    <span className="lk lk-horz logo" aria-label="7a0 — Sete a Zero">
-      <span className="mark70 num" aria-hidden="true">
-        <span className="mark-7">7</span>
+    <span className="lk lk-horz logo" aria-label="8a0 — Oito a Zero">
+      <span className="mark80 num" aria-hidden="true">
+        <span className="mark-8">8</span>
         <span className="sep sep-dash">–</span>
         <span className="sep sep-colon">:</span>
         <span className="mark-0">0</span>
@@ -10,8 +10,7 @@ export function Logo({ subtitle = "monte · simule · 7 a 0" }: { subtitle?: str
       <span className="lk-horz-rule" />
       <span className="lk-horz-words">
         <span className="lk-horz-name">
-          SETE
-          <br />A ZERO
+          OITO<br />A ZERO
         </span>
         <span className="lk-horz-sub">{subtitle}</span>
       </span>
@@ -19,10 +18,10 @@ export function Logo({ subtitle = "monte · simule · 7 a 0" }: { subtitle?: str
   );
 }
 
-export function Mark70() {
+export function Mark80() {
   return (
-    <span className="mark70 num" aria-label="7 to 0">
-      <span className="mark-7">7</span>
+    <span className="mark80 num" aria-label="8 to 0">
+      <span className="mark-8">8</span>
       <span className="sep sep-dash">–</span>
       <span className="sep sep-colon">:</span>
       <span className="mark-0">0</span>

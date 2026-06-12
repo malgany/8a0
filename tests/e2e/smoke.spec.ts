@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("home renders the 7a0 entry experience", async ({ page }) => {
+test("home renders the 8a0 entry experience", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: /jogar agora/i })).toBeVisible();
   await expect(page.locator(".home-pitch")).toBeVisible();

@@ -3,12 +3,12 @@ import "./original.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "7a0 — Sete a Zero",
-  description: "Roll the dice, build your dream national team and win 7–0.",
+  title: "8a0 — Oito a Zero",
+  description: "Roll the dice, build your dream national team and win 8–0.",
   icons: {
     icon: [
-      { url: "/vendor/7a0/favicon.ico" },
-      { url: "/vendor/7a0/icon.svg", type: "image/svg+xml" },
+      { url: "/vendor/8a0/favicon.ico" },
+      { url: "/vendor/8a0/icon.svg", type: "image/svg+xml" },
     ],
   },
 };

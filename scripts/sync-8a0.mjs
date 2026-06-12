@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const ORIGIN = "https://7a0.com.br";
+const ORIGIN = "https://8a0.com.br";
 const ROOT = process.cwd();
 
 const pages = [
@@ -42,7 +42,7 @@ function localVendorPath(url) {
   const cleanPath = parsed.pathname
     .replace(/^\/_next\/static\//, "")
     .replace(/^\/+/, "");
-  return path.join(ROOT, "public", "vendor", "7a0", cleanPath);
+  return path.join(ROOT, "public", "vendor", "8a0", cleanPath);
 }
 
 function extractAssets(html) {
@@ -79,7 +79,7 @@ function extractSquadIndex(playChunk) {
 }
 
 async function main() {
-  const snapshotDir = path.join(ROOT, "public", "vendor", "7a0", "snapshots");
+  const snapshotDir = path.join(ROOT, "public", "vendor", "8a0", "snapshots");
   await mkdir(snapshotDir, { recursive: true });
 
   const htmlByName = {};
@@ -123,7 +123,7 @@ async function main() {
   for (const cssAsset of cssAssets.sort()) {
     const cssPath = localVendorPath(cssAsset);
     const css = await readFile(cssPath, "utf8");
-    originalCss += `\n/* ${cssAsset} */\n${css.replaceAll("/_next/static/media/", "/vendor/7a0/media/")}\n`;
+    originalCss += `\n/* ${cssAsset} */\n${css.replaceAll("/_next/static/media/", "/vendor/8a0/media/")}\n`;
   }
   await mkdir(path.join(ROOT, "src", "app"), { recursive: true });
   await writeFile(path.join(ROOT, "src", "app", "original.css"), originalCss);
@@ -146,15 +146,16 @@ async function main() {
 
   const squadsDir = path.join(ROOT, "public", "squads");
   await mkdir(squadsDir, { recursive: true });
+  const squadFiles = [];
   for (const squad of squadIndex) {
-    await fetchFile(
-      `${ORIGIN}/squads/${squad.slug}.json`,
-      path.join(squadsDir, `${squad.slug}.json`),
-    );
+    const squadPath = path.join(squadsDir, `${squad.slug}.json`);
+    await fetchFile(`${ORIGIN}/squads/${squad.slug}.json`, squadPath);
+    squadFiles.push(JSON.parse(await readFile(squadPath, "utf8")));
   }
+  await writeFile(path.join(ROOT, "src", "data", "squads.json"), `${JSON.stringify(squadFiles)}\n`);
 
   await writeFile(
-    path.join(ROOT, "public", "vendor", "7a0", "manifest.json"),
+    path.join(ROOT, "public", "vendor", "8a0", "manifest.json"),
     JSON.stringify(
       {
         origin: ORIGIN,

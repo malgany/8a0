@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "sync:7a0": "node scripts/sync-7a0.mjs"
+    "sync:8a0": "node scripts/sync-8a0.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

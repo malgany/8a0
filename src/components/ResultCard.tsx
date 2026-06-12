@@ -6,8 +6,17 @@ import type { Draft, Locale, Player, SimResult } from "@/lib/types";
 import { calculateStats } from "@/lib/game";
 import { draftToSharePayload, encodeSharePayload } from "@/lib/share";
 import { messages } from "@/lib/i18n";
-import { nationFlag } from "@/lib/nations";
+import { nationFlagImageUrl } from "@/lib/nations";
 import { Logo } from "./Logo";
+
+const shortLinksEnabled = process.env.NEXT_PUBLIC_ENABLE_SHORT_LINKS === "true";
+
+function CardFlag({ code }: { code: string }) {
+  const url = nationFlagImageUrl(code);
+  if (!url) return null;
+
+  return <span className="cc-flag-img" aria-hidden="true" style={{ backgroundImage: `url(${url})` }} />;
+}
 
 export function ResultCard({
   locale,
@@ -26,23 +35,26 @@ export function ResultCard({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const xi = draft.filled.filter(Boolean) as Player[];
   const overall = calculateStats(draft).overall;
+  const [recordWins = "0", recordLosses = "0"] = result.record.split("-");
 
   async function ensureShareUrl() {
     if (shareUrl) return shareUrl;
     const code = encodeSharePayload(draftToSharePayload(draft));
     let slug = code;
-    try {
-      const response = await fetch("/api/shorten", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-      if (response.ok) {
-        const json = (await response.json()) as { slug?: string };
-        slug = json.slug || code;
+    if (shortLinksEnabled) {
+      try {
+        const response = await fetch("/api/shorten", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
+        if (response.ok) {
+          const json = (await response.json()) as { slug?: string };
+          slug = json.slug || code;
+        }
+      } catch {
+        slug = code;
       }
-    } catch {
-      slug = code;
     }
     const url = `${window.location.origin}/${locale === "pt" ? "" : `${locale}/`}r/${slug}`;
     setShareUrl(url);
@@ -52,7 +64,7 @@ export function ResultCard({
   async function shareLink() {
     const url = await ensureShareUrl();
     if (navigator.share) {
-      await navigator.share({ title: "7a0", url }).catch(() => undefined);
+      await navigator.share({ title: "8a0", url }).catch(() => undefined);
     } else {
       await navigator.clipboard.writeText(url);
       alert(t.card.copied);
@@ -65,12 +77,12 @@ export function ResultCard({
     try {
       const dataUrl = await toPng(cardRef.current, {
         pixelRatio: 3,
-        cacheBust: true,
-        backgroundColor: document.documentElement.classList.contains("theme-terrace") ? "#0B1A12" : "#F3ECD8",
+        cacheBust: false,
+        backgroundColor: "#f7fff4",
       });
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = "7a0-card.png";
+      link.download = "8a0-card.png";
       link.click();
     } finally {
       setBusy(false);
@@ -78,9 +90,9 @@ export function ResultCard({
   }
 
   return (
-    <div className="card-stage">
+    <main className="card-stage result-dream tx-paper">
       <div className="card-stage-inner">
-        <div ref={cardRef} className="card-collectible skin-panini" style={{ position: "relative" }}>
+        <div ref={cardRef} className="card-collectible skin-dream" style={{ position: "relative" }}>
           <div className="cc-tx tx-paper" />
           {draft.options.mode === "almanaque" && <span className="cc-almanaque">{t.card.memory}</span>}
           <div className="cc-head">
@@ -94,8 +106,12 @@ export function ResultCard({
           <div className="cc-hero">
             <span className="cc-champ">{result.champion ? t.card.champion : t.card.eliminated}</span>
             <div className="cc-mark">
-              <span className="num" style={{ fontSize: "clamp(64px,12vw,150px)", lineHeight: 0.85 }}>
-                {result.record}
+              <span className="cc-record" aria-label={result.record}>
+                <span className="cc-record-number num">{recordWins}</span>
+                <span className="cc-record-dash" aria-hidden="true">
+                  -
+                </span>
+                <span className="cc-record-number num">{recordLosses}</span>
               </span>
             </div>
             {result.perfect && <span className="cc-perfect">{t.card.perfect}</span>}
@@ -124,7 +140,8 @@ export function ResultCard({
                 <span className="cc-chip-num num">{player.number}</span>
                 <span className={`cc-chip-name ${player.legend ? "foil-text" : ""}`}>{player.name}</span>
                 <span className="cc-chip-org">
-                  {nationFlag(player.sel)} {player.sel}
+                  <CardFlag code={player.sel} />
+                  {player.sel}
                   <span className="num">{player.copa}</span>
                 </span>
               </span>
@@ -154,6 +171,6 @@ export function ResultCard({
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

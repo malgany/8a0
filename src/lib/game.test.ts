@@ -8,6 +8,7 @@ import {
   formations,
   rng,
   simulateCampaign,
+  squadFiles,
   squadIndex,
 } from "./game";
 import type { Player, SquadFile } from "./types";
@@ -16,10 +17,11 @@ function readSquad(slug: string): SquadFile {
   return JSON.parse(readFileSync(path.join(process.cwd(), "public", "squads", `${slug}.json`), "utf8")) as SquadFile;
 }
 
-describe("7a0 dataset", () => {
+describe("8a0 dataset", () => {
   it("keeps the mirrored squad index and squad files aligned", () => {
     const files = readdirSync(path.join(process.cwd(), "public", "squads")).filter((file) => file.endsWith(".json"));
     expect(squadIndex).toHaveLength(250);
+    expect(squadFiles).toHaveLength(250);
     expect(files).toHaveLength(250);
     const players = squadIndex.flatMap((meta) => readSquad(meta.slug).squad);
     expect(players).toHaveLength(5613);

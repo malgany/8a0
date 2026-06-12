@@ -23,7 +23,7 @@ import {
   squadIndex,
 } from "@/lib/game";
 import { localePath, messages, positionLabels, styleLabels } from "@/lib/i18n";
-import { nationFlag, nationName } from "@/lib/nations";
+import { nationFlag, nationFlagImageUrl, nationName } from "@/lib/nations";
 import { decodeSharePayload } from "@/lib/share";
 import { SettingsToggle } from "./ChromeControls";
 import { Logo } from "./Logo";
@@ -44,6 +44,10 @@ const revealSpeeds: Record<RevealSpeed, number> = {
 
 const revealSpeedKeys = Object.keys(revealSpeeds) as RevealSpeed[];
 const revealKickoffDelay = 1390;
+const REVEAL_STORAGE_KEY = "s80-reveal";
+const LEGACY_REVEAL_STORAGE_KEY = "s70-reveal";
+const SPEED_STORAGE_KEY = "8a0-speed";
+const LEGACY_SPEED_STORAGE_KEY = "7a0-speed";
 const penaltyLiveLabels: Record<Locale, string> = {
   pt: "Cobrando",
   en: "Taking",
@@ -109,6 +113,26 @@ const revealControlLabels: Record<
     speedUltra: "Ultra",
   },
 };
+
+function readStoredRevealMode(): RevealMode {
+  if (typeof window === "undefined") return "manual";
+  const stored = localStorage.getItem(REVEAL_STORAGE_KEY) ?? localStorage.getItem(LEGACY_REVEAL_STORAGE_KEY);
+  return stored === "auto" ? "auto" : "manual";
+}
+
+function readStoredRevealSpeed(): RevealSpeed {
+  if (typeof window === "undefined") return "normal";
+  const stored = localStorage.getItem(SPEED_STORAGE_KEY) ?? localStorage.getItem(LEGACY_SPEED_STORAGE_KEY);
+  return stored && revealSpeedKeys.includes(stored as RevealSpeed) ? (stored as RevealSpeed) : "normal";
+}
+
+function FlagImage({ code, label }: { code: string; label: string }) {
+  const url = nationFlagImageUrl(code);
+  if (!url) {
+    return <span aria-label={label}>{nationFlag(code) || code}</span>;
+  }
+  return <span className="flag-img" aria-hidden="true" style={{ backgroundImage: `url(${url})` }} />;
+}
 
 function stoppageMinutes(gf: number, ga: number, index: number) {
   return [1 + ((2 * gf + 3 * ga + index + 1) % 5), 1 + ((3 * gf + 2 * ga + index) % 5)] as const;
@@ -218,6 +242,18 @@ function opponentCode(label: string) {
   return label.split(" ")[0] ?? "";
 }
 
+function opponentParts(label: string) {
+  const [code = "", year = ""] = label.split(" ");
+  return { code, year };
+}
+
+function opponentDisplayName(label: string, locale: Locale) {
+  const { code, year } = opponentParts(label);
+  if (!code) return label;
+  const name = nationName(code, locale);
+  return year ? `${name} ${year}` : name;
+}
+
 function groupRank(index: number, locale: Locale) {
   const rank = index + 1;
   if (locale === "en") {
@@ -234,9 +270,21 @@ function groupOutcomeLabel(locale: Locale, rank: string, advanced: boolean) {
 }
 
 function groupTeamLabel(label: string, locale: Locale) {
-  const code = opponentCode(label);
+  const { code, year } = opponentParts(label);
   if (!code) return label;
-  return `${code} ${nationName(code, locale)}`;
+  return year ? `${nationName(code, locale)} ${year}` : nationName(code, locale);
+}
+
+function GroupTeamLabel({ label, locale }: { label: string; locale: Locale }) {
+  const { code } = opponentParts(label);
+  return (
+    <span className="rv-team-display">
+      <span className="rv-team-flag" aria-label={nationName(code, locale)}>
+        <FlagImage code={code} label={nationName(code, locale)} />
+      </span>
+      <span>{groupTeamLabel(label, locale)}</span>
+    </span>
+  );
 }
 
 function pointsLabel(points: number, locale: Locale) {
@@ -261,7 +309,7 @@ function AdStrip({ locale }: { locale: Locale }) {
       : locale === "es"
         ? ["anuncia aquí", "contacto", "anuncia aquí"]
         : ["advertise here", "contact", "advertise here"];
-  const hrefs = ["https://ko-fi.com/7a0wc", "https://x.com/chavozik4", "https://pixgg.com/7a0"];
+  const hrefs = ["https://pixgg.com/8a0", "https://x.com/chavozik4", "https://pixgg.com/8a0"];
   const items = [...labels, ...labels];
 
   return (
@@ -430,7 +478,9 @@ function RollPanel({
       <div className={`roll-result sticker ${isRolling ? "is-spinning" : ""}`}>
         <span className="eyebrow">{t.play.drawn}</span>
         <div className="rr-sel">
-          <span className="rr-flag">{nationFlag(displayPair.sel)}</span>
+          <span className="rr-flag" aria-label={nationName(displayPair.sel, locale)}>
+            <FlagImage code={displayPair.sel} label={nationName(displayPair.sel, locale)} />
+          </span>
           <span>{nationName(displayPair.sel, locale)}</span>
         </div>
         <div className="rr-copa num">
@@ -564,7 +614,7 @@ function RevealView({
   const visible = result.campaign.slice(0, revealIndex + 1);
   const done = revealIndex >= result.campaign.length - 1;
   return (
-    <main className="reveal-wrap tx-paper">
+    <main className="reveal-wrap reveal-dream tx-paper">
       <section className="reveal-head">
         <span className="eyebrow">
           {t.reveal.yourTeam} · seed #{draft.seed.toUpperCase()}
@@ -636,14 +686,8 @@ function AnimatedRevealView({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [readyForNext, setReadyForNext] = useState(true);
-  const [mode, setMode] = useState<RevealMode>(() =>
-    typeof window !== "undefined" && localStorage.getItem("s70-reveal") === "auto" ? "auto" : "manual",
-  );
-  const [speed, setSpeed] = useState<RevealSpeed>(() => {
-    if (typeof window === "undefined") return "normal";
-    const savedSpeed = localStorage.getItem("7a0-speed");
-    return savedSpeed && revealSpeedKeys.includes(savedSpeed as RevealSpeed) ? (savedSpeed as RevealSpeed) : "normal";
-  });
+  const [mode, setMode] = useState<RevealMode>(readStoredRevealMode);
+  const [speed, setSpeed] = useState<RevealSpeed>(readStoredRevealSpeed);
   const [reducedMotion, setReducedMotion] = useState(
     () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true,
   );
@@ -701,12 +745,12 @@ function AnimatedRevealView({
 
   function setRevealMode(next: RevealMode) {
     setMode(next);
-    localStorage.setItem("s70-reveal", next);
+    localStorage.setItem(REVEAL_STORAGE_KEY, next);
   }
 
   function setRevealSpeed(next: RevealSpeed) {
     setSpeed(next);
-    localStorage.setItem("7a0-speed", next);
+    localStorage.setItem(SPEED_STORAGE_KEY, next);
   }
 
   function toggleFixture(index: number) {
@@ -716,7 +760,7 @@ function AnimatedRevealView({
   const showNextButton = readyForNext && (mode === "manual" || campaignComplete);
 
   return (
-    <main className="reveal-wrap tx-paper">
+    <main className="reveal-wrap reveal-dream tx-paper">
       <section className="reveal-head reveal-head-animated">
         <div>
           <span className="eyebrow">
@@ -827,7 +871,7 @@ function RevealSummary({
 function PenaltyKickMark({ kick }: { kick: number }) {
   return (
     <span className={`rv-kick ${kick ? "is-goal" : "is-miss"}`} aria-hidden="true">
-      {kick ? "\u2022" : "\u00d7"}
+      {kick ? "\u2713" : "\u00d7"}
     </span>
   );
 }
@@ -854,7 +898,7 @@ function PenaltyRound({
           </>
         )}
       </span>
-      <span className="rv-pen-vs">vs</span>
+      <span className="rv-pen-vs">{me && opponent ? "vs" : ""}</span>
       <span className="rv-kick-row rv-kick-row--them">
         {opponent && (
           <>
@@ -944,6 +988,7 @@ function AnimatedFixture({
   const goalSummary = summarizeGoals(visibleGoals, "me");
   const concededSummary = summarizeGoals(visibleGoals, "them");
   const code = opponentCode(match.opponent);
+  const opponentName = opponentDisplayName(match.opponent, locale);
   const showBody = !pending && expanded;
   const showHeaderSummary = !pending && !expanded && (goalSummary || concededSummary);
   const groupPosition = match.groupTable?.findIndex((row) => row.me) ?? -1;
@@ -964,10 +1009,10 @@ function AnimatedFixture({
         <span className="fx-phase">{match.phase}</span>
         <span className="fx-opp">
           <span className="fx-vs">vs</span>
-          <span className="fx-flag" aria-hidden="true">
-            {nationFlag(code)}
+          <span className="fx-flag" aria-label={nationName(code, locale)}>
+            <FlagImage code={code} label={nationName(code, locale)} />
           </span>
-          <strong>{match.opponent}</strong>
+          <strong>{opponentName}</strong>
         </span>
         <strong
           className={`num fx-score ${pending ? "is-pending" : ""} ${latestGoal?.side === "them" ? "score-snap-them" : "score-snap"}`}
@@ -1053,7 +1098,7 @@ function AnimatedFixture({
                 {match.groupTable.map((row, rowIndex) => (
                   <div className={`rv-trow ${row.me ? "is-me" : ""}`} key={`${row.label}-${rowIndex}`} style={instant ? undefined : { animationDelay: `${rowIndex * 0.09}s` }}>
                     <span className="rv-tpos num">{groupRank(rowIndex, locale)}</span>
-                    <span className="rv-tname">{row.me ? t.reveal.yourTeam : groupTeamLabel(row.label, locale)}</span>
+                    <span className="rv-tname">{row.me ? t.reveal.yourTeam : <GroupTeamLabel label={row.label} locale={locale} />}</span>
                     <span className="rv-tnum num">
                       {row.pts} {pointsLabel(row.pts, locale)}
                     </span>
@@ -1275,10 +1320,10 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
   }
 
   return (
-    <main>
+    <main className="play-dream tx-paper">
       <header className="site-header draft-header">
         <div className="site-header-left">
-          <Link href={localePath(locale, "/")} className="home-link" aria-label={t.play.back}>
+          <Link href={localePath(locale, "/")} className="home-link" aria-label={t.play.back} prefetch={false}>
             <Logo subtitle={t.logoSub} />
           </Link>
         </div>
@@ -1289,7 +1334,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
               {draft.options.mode === "classico" ? t.play.classic : t.play.memory}
             </span>
             <div className="play-toggles">
-              <Link className="profile-link profile-link--compact" href={localePath(locale, "/perfil")} aria-label={t.home.profile}>
+              <Link className="profile-link profile-link--compact" href={localePath(locale, "/perfil")} aria-label={t.home.profile} prefetch={false}>
                 <svg className="profile-link-ic" viewBox="0 0 40 40" aria-hidden="true">
                   <rect x="7" y="9" width="26" height="22" rx="2" />
                   <circle cx="15" cy="18" r="3.2" />
