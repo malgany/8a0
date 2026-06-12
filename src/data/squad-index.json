@@ -1,5 +1,225 @@
 [
   {
+    "sel": "ARG",
+    "copa": 1930,
+    "slug": "ARG-1930-a68fa44f"
+  },
+  {
+    "sel": "BEL",
+    "copa": 1930,
+    "slug": "BEL-1930-692cbc8f"
+  },
+  {
+    "sel": "BOL",
+    "copa": 1930,
+    "slug": "BOL-1930-9de73f75"
+  },
+  {
+    "sel": "BRA",
+    "copa": 1930,
+    "slug": "BRA-1930-fbdf954d"
+  },
+  {
+    "sel": "CHI",
+    "copa": 1930,
+    "slug": "CHI-1930-e36f77d8"
+  },
+  {
+    "sel": "FRA",
+    "copa": 1930,
+    "slug": "FRA-1930-459771e8"
+  },
+  {
+    "sel": "MEX",
+    "copa": 1930,
+    "slug": "MEX-1930-c4ad45d4"
+  },
+  {
+    "sel": "PAR",
+    "copa": 1930,
+    "slug": "PAR-1930-76932159"
+  },
+  {
+    "sel": "PER",
+    "copa": 1930,
+    "slug": "PER-1930-3a70ff44"
+  },
+  {
+    "sel": "ROU",
+    "copa": 1930,
+    "slug": "ROU-1930-bd52586b"
+  },
+  {
+    "sel": "URU",
+    "copa": 1930,
+    "slug": "URU-1930-2e4b5c9d"
+  },
+  {
+    "sel": "USA",
+    "copa": 1930,
+    "slug": "USA-1930-a566a031"
+  },
+  {
+    "sel": "YUG",
+    "copa": 1930,
+    "slug": "YUG-1930-48ac0841"
+  },
+  {
+    "sel": "ARG",
+    "copa": 1934,
+    "slug": "ARG-1934-d1dfc6b3"
+  },
+  {
+    "sel": "AUT",
+    "copa": 1934,
+    "slug": "AUT-1934-9dc2eedd"
+  },
+  {
+    "sel": "BEL",
+    "copa": 1934,
+    "slug": "BEL-1934-a5b0fe4c"
+  },
+  {
+    "sel": "BRA",
+    "copa": 1934,
+    "slug": "BRA-1934-a75548d0"
+  },
+  {
+    "sel": "EGY",
+    "copa": 1934,
+    "slug": "EGY-1934-00346898"
+  },
+  {
+    "sel": "ESP",
+    "copa": 1934,
+    "slug": "ESP-1934-60001921"
+  },
+  {
+    "sel": "FRA",
+    "copa": 1934,
+    "slug": "FRA-1934-1d13b12a"
+  },
+  {
+    "sel": "GER",
+    "copa": 1934,
+    "slug": "GER-1934-d7e54769"
+  },
+  {
+    "sel": "HUN",
+    "copa": 1934,
+    "slug": "HUN-1934-ed5a82d9"
+  },
+  {
+    "sel": "ITA",
+    "copa": 1934,
+    "slug": "ITA-1934-26948040"
+  },
+  {
+    "sel": "NED",
+    "copa": 1934,
+    "slug": "NED-1934-2c85c036"
+  },
+  {
+    "sel": "ROU",
+    "copa": 1934,
+    "slug": "ROU-1934-c5a80b80"
+  },
+  {
+    "sel": "SUI",
+    "copa": 1934,
+    "slug": "SUI-1934-6b78e6ac"
+  },
+  {
+    "sel": "SWE",
+    "copa": 1934,
+    "slug": "SWE-1934-0b9d2e47"
+  },
+  {
+    "sel": "TCH",
+    "copa": 1934,
+    "slug": "TCH-1934-db63ec9b"
+  },
+  {
+    "sel": "USA",
+    "copa": 1934,
+    "slug": "USA-1934-252f83cb"
+  },
+  {
+    "sel": "BEL",
+    "copa": 1938,
+    "slug": "BEL-1938-2bf3d83c"
+  },
+  {
+    "sel": "BRA",
+    "copa": 1938,
+    "slug": "BRA-1938-ec9c91fa"
+  },
+  {
+    "sel": "CUB",
+    "copa": 1938,
+    "slug": "CUB-1938-0fc54865"
+  },
+  {
+    "sel": "DEI",
+    "copa": 1938,
+    "slug": "DEI-1938-76f346a4"
+  },
+  {
+    "sel": "FRA",
+    "copa": 1938,
+    "slug": "FRA-1938-23493d22"
+  },
+  {
+    "sel": "GER",
+    "copa": 1938,
+    "slug": "GER-1938-7ecb8d19"
+  },
+  {
+    "sel": "HUN",
+    "copa": 1938,
+    "slug": "HUN-1938-9c7cef58"
+  },
+  {
+    "sel": "ITA",
+    "copa": 1938,
+    "slug": "ITA-1938-dbe6a58a"
+  },
+  {
+    "sel": "NED",
+    "copa": 1938,
+    "slug": "NED-1938-90f7586b"
+  },
+  {
+    "sel": "NOR",
+    "copa": 1938,
+    "slug": "NOR-1938-c6bebced"
+  },
+  {
+    "sel": "POL",
+    "copa": 1938,
+    "slug": "POL-1938-63de0249"
+  },
+  {
+    "sel": "ROU",
+    "copa": 1938,
+    "slug": "ROU-1938-7acf2efc"
+  },
+  {
+    "sel": "SUI",
+    "copa": 1938,
+    "slug": "SUI-1938-16f1bdfb"
+  },
+  {
+    "sel": "SWE",
+    "copa": 1938,
+    "slug": "SWE-1938-4d34f62f"
+  },
+  {
+    "sel": "TCH",
+    "copa": 1938,
+    "slug": "TCH-1938-9988659c"
+  },
+  {
     "sel": "BRA",
     "copa": 1950,
     "slug": "BRA-1950-3e1bc7e8"

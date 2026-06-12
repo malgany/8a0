@@ -20,11 +20,11 @@ function readSquad(slug: string): SquadFile {
 describe("8a0 dataset", () => {
   it("keeps the mirrored squad index and squad files aligned", () => {
     const files = readdirSync(path.join(process.cwd(), "public", "squads")).filter((file) => file.endsWith(".json"));
-    expect(squadIndex).toHaveLength(250);
-    expect(squadFiles).toHaveLength(250);
-    expect(files).toHaveLength(250);
+    expect(squadIndex).toHaveLength(294);
+    expect(squadFiles).toHaveLength(294);
+    expect(files).toHaveLength(294);
     const players = squadIndex.flatMap((meta) => readSquad(meta.slug).squad);
-    expect(players).toHaveLength(5613);
+    expect(players).toHaveLength(6514);
     expect(players.every((player) => player.playerId && player.name && player.positions.length > 0)).toBe(true);
   });
 });
