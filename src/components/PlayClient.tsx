@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CampaignMatch, Draft, DraftOptions, Locale, Player, SharePayload, SquadFile } from "@/lib/types";
 import {
   availablePositions,
@@ -211,6 +211,12 @@ function scrollDraftIntoView() {
   window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
 }
 
+function scrollTargetIntoView(target: Element | null) {
+  if (!target) return;
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "nearest" });
+}
+
 function Pitch({
   locale,
   draft,
@@ -312,11 +318,14 @@ function RollPanel({
   onSelect: (player: Player) => void;
 }) {
   const t = messages[locale];
-  const available = useMemo(() => {
+  const playerPool = useMemo(() => {
     if (!squad) return [];
     const used = new Set(draft.usedPlayerIds);
-    return squad.squad.filter((player) => !used.has(player.playerId) && canFillAnySlot(draft, player));
+    return squad.squad
+      .filter((player) => !used.has(player.playerId))
+      .map((player) => ({ player, selectable: canFillAnySlot(draft, player) }));
   }, [draft, squad]);
+  const hasSelectablePlayer = playerPool.some((item) => item.selectable);
   const displayPair = rollingPair ?? squad;
 
   if (!displayPair) {
@@ -368,14 +377,15 @@ function RollPanel({
       )}
       {!isRolling && (
       <div className="player-pool">
-        <span className="eyebrow">{available.length ? t.play.choosePlayer : t.play.noPlayer}</span>
+        <span className="eyebrow">{hasSelectablePlayer ? t.play.choosePlayer : t.play.noPlayer}</span>
         <div className="player-list">
-          {available.map((player) => (
+          {playerPool.map(({ player, selectable }) => (
             <button
               type="button"
               key={player.playerId}
-              className={`player-card ${selected?.playerId === player.playerId ? "is-active" : ""} ${player.legend ? "is-legend" : ""}`}
-              onClick={() => onSelect(player)}
+              className={`player-card ${selected?.playerId === player.playerId ? "is-active" : ""} ${player.legend ? "is-legend" : ""} ${selectable ? "" : "is-disabled"}`}
+              disabled={!selectable}
+              onClick={() => selectable && onSelect(player)}
             >
               <span className="pc-num num">#{player.number}</span>
               <span className="pc-name">{player.name}</span>
@@ -550,8 +560,10 @@ function AnimatedRevealView({
   const [reducedMotion, setReducedMotion] = useState(
     () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true,
   );
+  const fixtureListRef = useRef<HTMLDivElement>(null);
   const visible = result.campaign.slice(0, visibleCount);
-  const done = visibleCount >= result.campaign.length;
+  const allMatchesVisible = visibleCount >= result.campaign.length;
+  const campaignComplete = allMatchesVisible && readyForNext;
   const msPerMin = revealSpeeds[speed];
 
   useEffect(() => {
@@ -585,12 +597,19 @@ function AnimatedRevealView({
   }, [activeIndex, msPerMin, readyForNext, reducedMotion, result.campaign]);
 
   useEffect(() => {
-    if (mode !== "auto" || !readyForNext || done) return;
+    if (mode !== "auto" || !readyForNext || allMatchesVisible) return;
     const timer = window.setTimeout(() => {
       revealNext();
     }, visibleCount === 0 ? 300 : 350);
     return () => window.clearTimeout(timer);
-  }, [done, mode, readyForNext, revealNext, visibleCount]);
+  }, [allMatchesVisible, mode, readyForNext, revealNext, visibleCount]);
+
+  useEffect(() => {
+    const target = campaignComplete
+      ? fixtureListRef.current?.parentElement?.querySelector(".campaign-summary")
+      : fixtureListRef.current?.querySelector(".reveal-fixture.is-current");
+    window.setTimeout(() => scrollTargetIntoView(target ?? null), 0);
+  }, [activeIndex, campaignComplete, visibleCount]);
 
   function setRevealMode(next: RevealMode) {
     setMode(next);
@@ -602,7 +621,7 @@ function AnimatedRevealView({
     localStorage.setItem("7a0-speed", next);
   }
 
-  const showNextButton = readyForNext && (mode === "manual" || done);
+  const showNextButton = readyForNext && (mode === "manual" || campaignComplete);
 
   return (
     <main className="reveal-wrap tx-paper">
@@ -611,7 +630,7 @@ function AnimatedRevealView({
           <span className="eyebrow">
             {t.reveal.yourTeam} / seed #{draft.seed.toUpperCase()}
           </span>
-          <h1>{result.champion && done ? t.reveal.titleChampion : t.reveal.titleDefault}</h1>
+          <h1>{result.champion && campaignComplete ? t.reveal.titleChampion : t.reveal.titleDefault}</h1>
         </div>
         <div className="reveal-controls">
           <div className="reveal-mode" role="group" aria-label={controls.modeManual}>
@@ -640,7 +659,7 @@ function AnimatedRevealView({
           <SettingsToggle locale={locale} label={t.home.settings} />
         </div>
       </section>
-      <div className="fixture-list">
+      <div className="fixture-list" ref={fixtureListRef}>
         {visible.map((match, index) => (
           <AnimatedFixture
             active={index === activeIndex}
@@ -653,10 +672,10 @@ function AnimatedRevealView({
           />
         ))}
       </div>
-      {done && <RevealSummary locale={locale} result={result} />}
+      {campaignComplete && <RevealSummary locale={locale} result={result} />}
       {showNextButton && (
-        <button className="btn btn-primary reveal-next" onClick={done ? onDone : revealNext} type="button">
-          {done ? t.reveal.card : visibleCount === 0 ? t.reveal.first : t.reveal.next}
+        <button className="btn btn-primary reveal-next" onClick={campaignComplete ? onDone : revealNext} type="button">
+          {campaignComplete ? t.reveal.card : visibleCount === 0 ? t.reveal.first : t.reveal.next}
         </button>
       )}
     </main>
@@ -890,6 +909,8 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
   const [phase, setPhase] = useState<Phase>("drafting");
   const [result, setResult] = useState<ReturnType<typeof simulateCampaign> | null>(null);
   const [loading, setLoading] = useState(Boolean(sharedCode));
+  const rollColumnRef = useRef<HTMLDivElement>(null);
+  const pitchColumnRef = useRef<HTMLDivElement>(null);
   const complete = draft.filled.every(Boolean);
 
   useEffect(() => {
@@ -1002,6 +1023,17 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
     });
     setSelected(null);
     setSquad(null);
+    window.setTimeout(() => scrollTargetIntoView(rollColumnRef.current), 0);
+  }
+
+  function selectPlayer(player: Player) {
+    if (selected?.playerId === player.playerId) {
+      setSelected(null);
+      return;
+    }
+    const positions = availablePositions(draft, player);
+    setSelected(positions.length ? player : null);
+    if (positions.length) window.setTimeout(() => scrollTargetIntoView(pitchColumnRef.current), 0);
   }
 
   async function simulate() {
@@ -1070,7 +1102,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
         </div>
       </header>
       <div className="draft-layout">
-        <div className="col-roll">
+        <div className="col-roll" ref={rollColumnRef}>
           {draft.rollIndex === 0 && <SetupControls locale={locale} draft={draft} onOptions={setOptions} />}
           {complete ? (
             <div className="roll-panel">
@@ -1092,14 +1124,11 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
               isRolling={isRolling}
               onRoll={rollNext}
               onReroll={reroll}
-              onSelect={(player) => {
-                const positions = availablePositions(draft, player);
-                setSelected(positions.length ? player : null);
-              }}
+              onSelect={selectPlayer}
             />
           )}
         </div>
-        <div className="col-pitch">
+        <div className="col-pitch" ref={pitchColumnRef}>
           <Pitch locale={locale} draft={draft} selected={selected} onSlot={chooseSlot} />
           {!selected && draft.filled.some(Boolean) && <p className="pitch-hint">{t.play.hintMove}</p>}
           {selected && <p className="pitch-hint">{selected.name} · {describePair(selected.sel, selected.copa, locale)}</p>}

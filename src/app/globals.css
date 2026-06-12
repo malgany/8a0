@@ -273,11 +273,29 @@ a {
   color: #fff;
 }
 
+.player-card.is-disabled,
+.player-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.player-card.is-disabled:hover,
+.player-card:disabled:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
 .theme-terrace .player-card:hover,
 .theme-terrace .player-card.is-active {
   background: #1a3d2a;
   outline: 2px solid var(--accent-2);
   outline-offset: -2px;
+}
+
+.theme-terrace .player-card.is-disabled:hover,
+.theme-terrace .player-card:disabled:hover {
+  background: var(--surface-2);
+  outline: 0;
 }
 
 .pc-num {
@@ -330,6 +348,17 @@ a {
 .player-card.is-active .pc-force,
 .player-card.is-active .pc-pos {
   color: #fff;
+}
+
+.player-card.is-disabled:hover .pc-name,
+.player-card.is-disabled:hover .pc-num,
+.player-card.is-disabled:hover .pc-force,
+.player-card.is-disabled:hover .pc-pos,
+.player-card:disabled:hover .pc-name,
+.player-card:disabled:hover .pc-num,
+.player-card:disabled:hover .pc-force,
+.player-card:disabled:hover .pc-pos {
+  color: inherit;
 }
 
 .box-panel {
