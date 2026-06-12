@@ -612,11 +612,14 @@ a {
   transition: box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.reveal-fixture.is-current {
+.reveal-fixture.is-current,
+.reveal-fixture.is-expanded {
   box-shadow: inset 4px 0 0 var(--win), 0 3px 0 var(--line);
 }
 
-.reveal-fixture.is-loss.is-current {
+.reveal-fixture.is-loss.is-current,
+.reveal-fixture.is-loss.is-expanded,
+.reveal-fixture.is-pen {
   box-shadow: inset 4px 0 0 var(--accent), 0 3px 0 var(--line);
 }
 
@@ -722,22 +725,181 @@ a {
   font-size: 14px;
   opacity: 0.65;
   text-align: center;
+  transition: color 0.2s ease, opacity 0.2s ease, transform 0.25s ease;
+}
+
+.reveal-score.is-expanded .rv-caret {
+  color: var(--win);
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.reveal-fixture.is-loss .reveal-score.is-expanded .rv-caret {
+  color: var(--accent);
+}
+
+.fx-scorers {
+  grid-column: 2 / 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.fx-scorers span {
+  min-width: 0;
+}
+
+.fx-scorers b {
+  margin-right: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fx-scorers em {
+  color: var(--line);
+  font-style: normal;
 }
 
 .reveal-body {
   animation: revealFadeIn 0.28s ease both;
-  margin-top: -10px;
-  padding: 0 18px 14px 112px;
+  padding: 2px 18px 16px 112px;
 }
 
-.reveal-body .goal-flow span,
-.reveal-body .group-table span:not(.eyebrow) {
+.rv-tl {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 4px 0 2px;
+  padding: 0 0 0 12px;
+  border-left: 2px solid var(--line);
+  list-style: none;
+}
+
+.rv-goal {
+  display: grid;
+  grid-template-columns: 40px 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
   animation: revealGoalIn 0.26s ease both;
 }
 
+.rv-goal.is-opp {
+  color: var(--accent);
+}
+
+.rv-min {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.rv-ico {
+  font-size: 13px;
+  text-align: center;
+}
+
+.rv-scorer {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--display);
+  font-size: 15px;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rv-table-wrap {
+  margin-top: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: revealFadeIn 0.3s ease both;
+}
+
+.rv-table-h {
+  padding: 8px 11px;
+  background: color-mix(in srgb, var(--surface) 70%, var(--line));
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.rv-table {
+  width: 100%;
+}
+
+.rv-trow {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 62px 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  border-top: 1px solid var(--line);
+  animation: revealGoalIn 0.26s ease both;
+}
+
+.rv-trow.is-me {
+  background: color-mix(in srgb, var(--win) 9%, transparent);
+}
+
+.rv-tpos {
+  color: var(--muted);
+  font-size: 12px;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.rv-tname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--display);
+  font-size: 14px;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rv-trow.is-me .rv-tname {
+  color: var(--win);
+}
+
+.rv-tnum {
+  font-size: 13px;
+  text-align: right;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.rv-qualified {
+  margin-top: 0;
+  padding: 10px 11px 2px;
+  border-top: 1px solid var(--line);
+  color: var(--win);
+  font-family: var(--display);
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  animation: revealFadeIn 0.3s ease both;
+}
+
 .reveal-body.is-instant,
-.reveal-body.is-instant .goal-flow span,
-.reveal-body.is-instant .group-table span:not(.eyebrow) {
+.reveal-body.is-instant .rv-goal,
+.reveal-body.is-instant .rv-qualified,
+.reveal-body.is-instant .rv-table-wrap,
+.reveal-body.is-instant .rv-trow {
   animation: none;
 }
 
@@ -973,6 +1135,32 @@ a {
     padding-left: 82px;
   }
 
+  .fx-scorers {
+    grid-column: 2 / 6;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+  }
+
+  .fx-scorers em {
+    display: none;
+  }
+
+  .rv-trow {
+    grid-template-columns: 28px minmax(0, 1fr) 54px 34px;
+    gap: 6px;
+    padding-inline: 9px;
+  }
+
+  .rv-tname {
+    font-size: 12px;
+  }
+
+  .rv-tnum {
+    font-size: 12px;
+  }
+
   .goal-flow {
     font-size: 14px;
   }
@@ -988,11 +1176,13 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .reveal-body,
-  .reveal-body .goal-flow span,
-  .reveal-body .group-table span:not(.eyebrow),
   .reveal-fixture,
   .penalty-flow span,
   .penalty-live,
+  .rv-goal,
+  .rv-qualified,
+  .rv-table-wrap,
+  .rv-trow,
   .score-snap,
   .score-snap-them {
     animation: none !important;

@@ -160,6 +160,32 @@ function opponentCode(label: string) {
   return label.split(" ")[0] ?? "";
 }
 
+function groupRank(index: number, locale: Locale) {
+  const rank = index + 1;
+  if (locale === "en") {
+    const suffix = rank === 1 ? "st" : rank === 2 ? "nd" : rank === 3 ? "rd" : "th";
+    return `${rank}${suffix}`;
+  }
+  return `${rank}\u00ba`;
+}
+
+function groupOutcomeLabel(locale: Locale, rank: string, advanced: boolean) {
+  if (locale === "en") return advanced ? `Qualified in ${rank} - advances` : `Eliminated in ${rank}`;
+  if (locale === "es") return advanced ? `Clasificado en ${rank} - avanza` : `Eliminado en ${rank}`;
+  return advanced ? `Classificado em ${rank} - avan\u00e7a` : `Eliminado em ${rank}`;
+}
+
+function groupTeamLabel(label: string, locale: Locale) {
+  const code = opponentCode(label);
+  if (!code) return label;
+  return `${code} ${nationName(code, locale)}`;
+}
+
+function pointsLabel(points: number, locale: Locale) {
+  if (locale === "en") return points === 1 ? "pt" : "pts";
+  return "pts";
+}
+
 function summarizeGoals(goals: CampaignMatch["minutes"], side: "me" | "them") {
   const counts = new Map<string, number>();
   goals
@@ -787,10 +813,17 @@ function AnimatedFixture({
   const goalSummary = summarizeGoals(visibleGoals, "me");
   const concededSummary = summarizeGoals(visibleGoals, "them");
   const code = opponentCode(match.opponent);
+  const expanded = active;
+  const showBody = !pending && expanded;
+  const showHeaderSummary = !pending && !expanded && (goalSummary || concededSummary);
+  const groupPosition = match.groupTable?.findIndex((row) => row.me) ?? -1;
+  const groupRankText = groupPosition >= 0 ? groupRank(groupPosition, locale) : "";
 
   return (
-    <article className={`fixture-card sticker reveal-fixture ${match.advanced ? "is-win" : "is-loss"} ${active ? "is-current" : ""}`}>
-      <div className="fixture-score reveal-score">
+    <article
+      className={`fixture-card sticker reveal-fixture ${match.advanced ? "is-win" : "is-loss"} ${active ? "is-current is-expanded" : ""} ${match.penalties && showFinal ? "is-pen" : ""}`}
+    >
+      <div className={`fixture-score reveal-score ${expanded ? "is-expanded" : ""}`}>
         <span className="fx-phase">{match.phase}</span>
         <span className="fx-opp">
           <span className="fx-vs">vs</span>
@@ -811,22 +844,40 @@ function AnimatedFixture({
         <span className="rv-caret" aria-hidden="true">
           {"\u203a"}
         </span>
+        {showHeaderSummary && (
+          <span className="fx-scorers">
+            {goalSummary && (
+              <span>
+                <b>GOLS</b> {goalSummary}
+              </span>
+            )}
+            {goalSummary && concededSummary && <em>\u00b7</em>}
+            {concededSummary && (
+              <span>
+                <b>SOFREU</b> {concededSummary}
+              </span>
+            )}
+          </span>
+        )}
       </div>
-      {!pending && (
+      {showBody && (
         <div className={`reveal-body ${instant ? "is-instant" : ""}`}>
-          {(goalSummary || concededSummary) && (
-            <p className="goal-flow">
-              {goalSummary && (
-                <span className="me">
-                  <b>GOLS</b> {goalSummary}
-                </span>
-              )}
-              {concededSummary && (
-                <span className="them">
-                  <b>SOFREU</b> {concededSummary}
-                </span>
-              )}
-            </p>
+          {visibleGoals.length > 0 && (
+            <ol className="rv-tl">
+              {visibleGoals.map((goal, goalIndex) => (
+                <li
+                  className={`rv-goal ${goal.side === "them" ? "is-opp" : ""}`}
+                  key={`${goal.name}-${goal.minute}-${goalIndex}`}
+                  style={instant ? undefined : { animationDelay: `${goalIndex * 0.05}s` }}
+                >
+                  <span className="rv-min num">{goal.minute}&apos;</span>
+                  <span className="rv-ico" aria-hidden="true">
+                    {"\u2022"}
+                  </span>
+                  <span className="rv-scorer">{goal.name}</span>
+                </li>
+              ))}
+            </ol>
           )}
           {showFinal && match.penalties && (
             <div className={`fixture-pen ${penaltyComplete ? "is-complete" : "is-live"}`}>
@@ -853,13 +904,21 @@ function AnimatedFixture({
             </div>
           )}
           {showFinal && match.groupTable && (
-            <div className="group-table">
-              <span className="eyebrow">{t.reveal.group}</span>
-              {match.groupTable.map((row, rowIndex) => (
-                <span className={row.me ? "me" : ""} key={`${row.label}-${rowIndex}`} style={instant ? undefined : { animationDelay: `${rowIndex * 0.09}s` }}>
-                  {rowIndex + 1}. {row.label} <b>{row.pts}</b>
-                </span>
-              ))}
+            <div className="rv-table-wrap">
+              <div className="rv-table-h eyebrow">{t.reveal.group}</div>
+              <div className="rv-table">
+                {match.groupTable.map((row, rowIndex) => (
+                  <div className={`rv-trow ${row.me ? "is-me" : ""}`} key={`${row.label}-${rowIndex}`} style={instant ? undefined : { animationDelay: `${rowIndex * 0.09}s` }}>
+                    <span className="rv-tpos num">{groupRank(rowIndex, locale)}</span>
+                    <span className="rv-tname">{row.me ? t.reveal.yourTeam : groupTeamLabel(row.label, locale)}</span>
+                    <span className="rv-tnum num">
+                      {row.pts} {pointsLabel(row.pts, locale)}
+                    </span>
+                    <span className="rv-tnum num">{row.gd >= 0 ? `+${row.gd}` : row.gd}</span>
+                  </div>
+                ))}
+              </div>
+              {groupRankText && <div className="rv-qualified">{groupOutcomeLabel(locale, groupRankText, match.advanced)}</div>}
             </div>
           )}
         </div>
