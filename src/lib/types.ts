@@ -89,6 +89,7 @@ export interface PenaltyResult {
 }
 
 export interface CampaignMatch {
+  matchId?: number;
   phase: string;
   opponent: string;
   opponentOverall: number;
@@ -109,6 +110,85 @@ export interface CampaignMatch {
   }>;
 }
 
+export type TournamentStage =
+  | "GROUP"
+  | "ROUND_OF_32"
+  | "ROUND_OF_16"
+  | "QUARTERFINAL"
+  | "SEMIFINAL"
+  | "THIRD_PLACE"
+  | "FINAL";
+
+export interface TournamentTeam {
+  id: string;
+  label: string;
+  sel?: string;
+  copa?: number;
+  group: string;
+  slot: number;
+  attack: number;
+  defense: number;
+  overall: number;
+  isUser: boolean;
+}
+
+export interface TournamentMatch {
+  id: number;
+  stage: TournamentStage;
+  group?: string;
+  matchday?: number;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeScore: number;
+  awayScore: number;
+  winnerTeamId?: string;
+  loserTeamId?: string;
+  penalties?: PenaltyResult;
+  isUserMatch: boolean;
+}
+
+export interface TournamentStanding {
+  teamId: string;
+  rank: number;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  pts: number;
+  qualified: boolean;
+  thirdRank?: number;
+}
+
+export interface TournamentGroup {
+  group: string;
+  teamIds: string[];
+  matchIds: number[];
+  standings: TournamentStanding[];
+}
+
+export interface TournamentBracket {
+  roundOf32: number[];
+  roundOf16: number[];
+  quarterfinals: number[];
+  semifinals: number[];
+  thirdPlace: number;
+  final: number;
+}
+
+export interface TournamentData {
+  userTeamId: string;
+  userGroup: string;
+  teams: TournamentTeam[];
+  groups: TournamentGroup[];
+  matches: TournamentMatch[];
+  bracket: TournamentBracket;
+  qualifiedThirdGroups: string[];
+  thirdPlaceAssignments: Record<string, string>;
+}
+
 export interface SimResult {
   record: string;
   champion: boolean;
@@ -119,6 +199,7 @@ export interface SimResult {
   gf: number;
   ga: number;
   campaign: CampaignMatch[];
+  tournament?: TournamentData;
   badge: "ESMAGADOR DE RECORDES" | "MURALHA" | null;
 }
 
