@@ -644,6 +644,24 @@ function groupStandings(
   return [me, ...table].sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
 }
 
+function opponentLabel(opponent: Pick<SquadFile, "sel" | "copa"> | SquadMeta | undefined, fallback: string) {
+  return opponent ? `${opponent.sel} ${opponent.copa}` : fallback;
+}
+
+function fallbackOpponentMetas(seed: string, selected: Player[], count: number) {
+  const random = rng(`${seed}:opponents`);
+  const used = new Set(selected.map((player) => `${player.sel}:${player.copa}`));
+  const metas: SquadMeta[] = [];
+  while (metas.length < count && used.size < squadIndex.length) {
+    const meta = squadIndex[Math.floor(random() * squadIndex.length)]!;
+    const key = `${meta.sel}:${meta.copa}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    metas.push(meta);
+  }
+  return metas;
+}
+
 export function simulateCampaign(
   seed: string,
   draft: Draft,
@@ -651,6 +669,7 @@ export function simulateCampaign(
 ): SimResult {
   const stats = calculateStats(draft);
   const selected = draft.filled.filter(Boolean) as Player[];
+  const fallbackOpponents = fallbackOpponentMetas(seed, selected, 7);
   const random = rng(`${seed.toUpperCase()}:copa`);
   const scorerRandom = rng(`${seed.toUpperCase()}:gols`);
   let wins = 0;
@@ -666,7 +685,12 @@ export function simulateCampaign(
     if (eliminated) break;
     if (phase.type === "group") {
       const groupMatches: Array<{ gf: number; ga: number; outcome: "V" | "E" | "D" }> = [];
+      const groupOpponents: Array<{ label: string; overall: number }> = [];
       phase.opponents.forEach((opponent) => {
+        const opponentSquad = opponentSquads[opponentIndex];
+        const opponentMeta = opponentSquad ?? fallbackOpponents[opponentIndex];
+        const label = opponentLabel(opponentMeta, opponent.label);
+        groupOpponents.push({ label, overall: opponent.overall });
         const match = playMatch(random, stats.attack, stats.defense, opponent.overall);
         groupMatches.push(match);
         gf += match.gf;
@@ -674,13 +698,12 @@ export function simulateCampaign(
         if (match.outcome === "V") wins += 1;
         else if (match.outcome === "E") draws += 1;
         else losses += 1;
-        const opponentSquad = opponentSquads[opponentIndex]?.squad ?? [];
         opponentIndex += 1;
         const scorers = weightedGoalScorers(scorerRandom, selected, match.gf);
-        const conceded = weightedGoalScorers(scorerRandom, opponentSquad, match.ga);
+        const conceded = weightedGoalScorers(scorerRandom, opponentSquad?.squad ?? [], match.ga);
         campaign.push({
           phase: phase.key,
-          opponent: opponent.label,
+          opponent: label,
           opponentOverall: opponent.overall,
           gf: match.gf,
           ga: match.ga,
@@ -691,7 +714,7 @@ export function simulateCampaign(
           minutes: goalMinutes(rng(`${seed}:min:${campaign.length}`), scorers, conceded),
         });
       });
-      const table = groupStandings(random, groupMatches, phase.opponents);
+      const table = groupStandings(random, groupMatches, groupOpponents);
       campaign[campaign.length - 1]!.groupTable = table;
       if (table.findIndex((row) => row.me) >= 2) {
         campaign[campaign.length - 1]!.advanced = false;
@@ -717,13 +740,15 @@ export function simulateCampaign(
     if (advanced) wins += 1;
     else losses += 1;
     eliminated = !advanced;
-    const opponentSquad = opponentSquads[opponentIndex]?.squad ?? [];
+    const opponentSquad = opponentSquads[opponentIndex];
+    const opponentMeta = opponentSquad ?? fallbackOpponents[opponentIndex];
+    const label = opponentLabel(opponentMeta, opponent.label);
     opponentIndex += 1;
     const scorers = weightedGoalScorers(scorerRandom, selected, match.gf);
-    const conceded = weightedGoalScorers(scorerRandom, opponentSquad, match.ga);
+    const conceded = weightedGoalScorers(scorerRandom, opponentSquad?.squad ?? [], match.ga);
     campaign.push({
       phase: phase.key,
-      opponent: opponent.label,
+      opponent: label,
       opponentOverall: opponent.overall,
       gf: match.gf,
       ga: match.ga,

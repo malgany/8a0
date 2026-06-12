@@ -58,4 +58,23 @@ describe("game model", () => {
     expect(second).toEqual(first);
     expect(first.campaign.length).toBeGreaterThan(0);
   });
+
+  it("shows real opponent labels when opponent squads are loaded", () => {
+    const squad = readSquad("BRA-1970-43aa9180");
+    const opponent = readSquad("ITA-1970-8dc490d2");
+    const draft = createDraft("fixed", defaultOptions);
+    draft.filled = squad.squad.slice(0, 11);
+    const result = simulateCampaign("fixed", draft, [opponent]);
+    expect(result.campaign[0]?.opponent).toBe("ITA 1970");
+    expect(result.campaign[2]?.groupTable?.some((row) => row.label === "ITA 1970")).toBe(true);
+  });
+
+  it("falls back to real opponent labels without loaded squads", () => {
+    const squad = readSquad("BRA-1970-43aa9180");
+    const draft = createDraft("fixed", defaultOptions);
+    draft.filled = squad.squad.slice(0, 11);
+    const result = simulateCampaign("fixed", draft, []);
+    expect(result.campaign[0]?.opponent).toMatch(/^[A-Z]{3} \d{4}$/);
+    expect(result.campaign[0]?.opponent).not.toMatch(/Grupo|Oitavas|Quartas|Semifinal|Final/);
+  });
 });
