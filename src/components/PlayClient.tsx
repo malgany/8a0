@@ -156,6 +156,20 @@ function penaltyTimeline(penalties: NonNullable<CampaignMatch["penalties"]>) {
   return kicks;
 }
 
+function opponentCode(label: string) {
+  return label.split(" ")[0] ?? "";
+}
+
+function summarizeGoals(goals: CampaignMatch["minutes"], side: "me" | "them") {
+  const counts = new Map<string, number>();
+  goals
+    .filter((goal) => goal.side === side)
+    .forEach((goal) => {
+      counts.set(goal.name, (counts.get(goal.name) ?? 0) + 1);
+    });
+  return [...counts.entries()].map(([name, count]) => (count > 1 ? `${name} (${count})` : name)).join(", ");
+}
+
 function AdStrip({ locale }: { locale: Locale }) {
   const labels =
     locale === "pt"
@@ -588,6 +602,8 @@ function AnimatedRevealView({
     localStorage.setItem("7a0-speed", next);
   }
 
+  const showNextButton = readyForNext && (mode === "manual" || done);
+
   return (
     <main className="reveal-wrap tx-paper">
       <section className="reveal-head reveal-head-animated">
@@ -621,6 +637,7 @@ function AnimatedRevealView({
               ))}
             </select>
           </label>
+          <SettingsToggle locale={locale} label={t.home.settings} />
         </div>
       </section>
       <div className="fixture-list">
@@ -636,12 +653,48 @@ function AnimatedRevealView({
           />
         ))}
       </div>
-      {readyForNext && (
+      {done && <RevealSummary locale={locale} result={result} />}
+      {showNextButton && (
         <button className="btn btn-primary reveal-next" onClick={done ? onDone : revealNext} type="button">
           {done ? t.reveal.card : visibleCount === 0 ? t.reveal.first : t.reveal.next}
         </button>
       )}
     </main>
+  );
+}
+
+function RevealSummary({
+  locale,
+  result,
+}: {
+  locale: Locale;
+  result: NonNullable<ReturnType<typeof simulateCampaign>>;
+}) {
+  const t = messages[locale];
+  const goalsAgainstLabel = locale === "pt" ? "sofridos" : locale === "es" ? "recibidos" : "against";
+  return (
+    <section className="campaign-summary">
+      <span className="num summary-record">{result.record}</span>
+      <strong className="num summary-score">
+        {result.wins}-{result.losses}
+      </strong>
+      <hr />
+      <h2>{result.champion ? t.reveal.champion : t.reveal.eliminated}</h2>
+      <div className="summary-stats">
+        <span>
+          <b className="num">{result.gf}</b>
+          <small>{t.card.gf}</small>
+        </span>
+        <span>
+          <b className="num">{result.ga}</b>
+          <small>{goalsAgainstLabel}</small>
+        </span>
+        <span>
+          <b className="num">{result.wins}</b>
+          <small>{t.card.wins}</small>
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -692,7 +745,7 @@ function AnimatedFixture({
   const liveGa = inProgress ? visibleGoals.filter((goal) => goal.side === "them").length : match.ga;
   const latestGoal = visibleGoals.at(-1);
   const showFinal = !pending && !inProgress;
-  const mark = match.phase === "FINAL" && match.advanced ? "*" : match.advanced ? "V" : "X";
+  const mark = match.phase === "FINAL" && match.advanced ? "*" : match.advanced ? "\u2713" : "\u00d7";
   const penaltyKicks = match.penalties ? penaltyTimeline(match.penalties) : [];
   const penaltyStart = timing.p5End + 600;
   const visiblePenaltyCount =
@@ -711,54 +764,70 @@ function AnimatedFixture({
       ? match.penalties.score
       : `${visibleMeKicks.reduce((sum, kick) => sum + kick.kick, 0)}-${visibleThemKicks.reduce((sum, kick) => sum + kick.kick, 0)}`
     : "";
+  const scoreText = pending ? "\u00b7 \u00b7 \u00b7" : `${liveGf}-${liveGa}`;
+  const goalSummary = summarizeGoals(visibleGoals, "me");
+  const concededSummary = summarizeGoals(visibleGoals, "them");
+  const code = opponentCode(match.opponent);
 
   return (
     <article className={`fixture-card sticker reveal-fixture ${match.advanced ? "is-win" : "is-loss"} ${active ? "is-current" : ""}`}>
-      <div className="fixture-top">
-        <span className="eyebrow">{match.phase}</span>
-        <span className="num">{match.opponentOverall}</span>
-      </div>
       <div className="fixture-score reveal-score">
-        <span>{t.reveal.yourTeam}</span>
+        <span className="fx-phase">{match.phase}</span>
+        <span className="fx-opp">
+          <span className="fx-vs">vs</span>
+          <span className="fx-flag" aria-hidden="true">
+            {nationFlag(code)}
+          </span>
+          <strong>{match.opponent}</strong>
+        </span>
         <strong
-          className={`num ${pending ? "is-pending" : ""} ${latestGoal?.side === "them" ? "score-snap-them" : "score-snap"}`}
+          className={`num fx-score ${pending ? "is-pending" : ""} ${latestGoal?.side === "them" ? "score-snap-them" : "score-snap"}`}
           key={pending ? "pending" : `${liveGf}-${liveGa}`}
         >
-          {pending ? "· · ·" : `${liveGf}–${liveGa}`}
+          {scoreText}
         </strong>
-        <span>{match.opponent}</span>
         <span className="fixture-clock">
-          {showFinal ? mark : clock.label ? <b className="num">{clock.label}&apos;</b> : ""}
+          {showFinal ? <b className="fx-mark">{mark}</b> : clock.label ? <b className="num">{clock.label}&apos;</b> : ""}
+        </span>
+        <span className="rv-caret" aria-hidden="true">
+          {"\u203a"}
         </span>
       </div>
       {!pending && (
         <div className={`reveal-body ${instant ? "is-instant" : ""}`}>
-          <div className="goal-flow">
-            {visibleGoals.map((goal, goalIndex) => (
-              <span key={`${goal.name}-${goal.minute}-${goalIndex}`} className={goal.side} style={instant ? undefined : { animationDelay: `${goalIndex * 0.08}s` }}>
-                <b className="num">{goal.minute}&apos;</b> {goal.name}
-              </span>
-            ))}
-          </div>
+          {(goalSummary || concededSummary) && (
+            <p className="goal-flow">
+              {goalSummary && (
+                <span className="me">
+                  <b>GOLS</b> {goalSummary}
+                </span>
+              )}
+              {concededSummary && (
+                <span className="them">
+                  <b>SOFREU</b> {concededSummary}
+                </span>
+              )}
+            </p>
+          )}
           {showFinal && match.penalties && (
             <div className={`fixture-pen ${penaltyComplete ? "is-complete" : "is-live"}`}>
               <span className="eyebrow">{t.reveal.penalties}</span>
               <span className="num">{livePenaltyScore}</span>
               {!penaltyComplete && nextPenaltyKick && (
                 <span className="penalty-live">
-                  {penaltyLiveLabels[locale]} · {nextPenaltyKick.side === "me" ? t.reveal.yourTeam : match.opponent}
+                  {penaltyLiveLabels[locale]} {"\u00b7"} {nextPenaltyKick.side === "me" ? t.reveal.yourTeam : match.opponent}
                 </span>
               )}
               <div className="penalty-flow">
                 {visibleMeKicks.map(({ kick, index }) => (
                   <span className={kick ? "made" : "missed"} key={`me-${index}`}>
-                    {kick ? "●" : "×"}
+                    {kick ? "\u25cf" : "\u00d7"}
                   </span>
                 ))}
                 <em>vs</em>
                 {visibleThemKicks.map(({ kick, index }) => (
                   <span className={kick ? "made" : "missed"} key={`them-${index}`}>
-                    {kick ? "●" : "×"}
+                    {kick ? "\u25cf" : "\u00d7"}
                   </span>
                 ))}
               </div>
