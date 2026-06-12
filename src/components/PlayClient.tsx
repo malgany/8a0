@@ -44,6 +44,11 @@ const revealSpeeds: Record<RevealSpeed, number> = {
 
 const revealSpeedKeys = Object.keys(revealSpeeds) as RevealSpeed[];
 const revealKickoffDelay = 1390;
+const penaltyLiveLabels: Record<Locale, string> = {
+  pt: "Cobrando",
+  en: "Taking",
+  es: "Patea",
+};
 const revealControlLabels: Record<
   Locale,
   {
@@ -99,9 +104,13 @@ function revealTiming(msPerMin: number, firstHalfExtra: number, secondHalfExtra:
   return { p1End, p2End, p3End, p4End, p5End };
 }
 
+function penaltyKickDuration(msPerMin: number) {
+  return Math.round((1200 * msPerMin) / revealSpeeds.normal);
+}
+
 function revealExtraDuration(match: CampaignMatch, msPerMin: number) {
   if (match.penalties) {
-    return 2 * Math.max(match.penalties.me.length, match.penalties.them.length) * Math.round((1200 * msPerMin) / revealSpeeds.normal) + 520;
+    return 2 * Math.max(match.penalties.me.length, match.penalties.them.length) * penaltyKickDuration(msPerMin) + 520;
   }
   if (match.groupTable) return 210 * match.groupTable.length + 520;
   return 520;
@@ -133,6 +142,18 @@ function clockFromElapsed(elapsed: number, msPerMin: number, firstHalfExtra: num
     return { minute: 90, label: `90+${extra}` };
   }
   return { minute: 90, label: `90+${secondHalfExtra}` };
+}
+
+function penaltyTimeline(penalties: NonNullable<CampaignMatch["penalties"]>) {
+  const kicks: Array<{ side: "me" | "them"; kick: number; index: number }> = [];
+  const rounds = Math.max(penalties.me.length, penalties.them.length);
+  for (let index = 0; index < rounds; index += 1) {
+    const meKick = penalties.me[index];
+    const themKick = penalties.them[index];
+    if (meKick !== undefined) kicks.push({ side: "me", kick: meKick, index });
+    if (themKick !== undefined) kicks.push({ side: "them", kick: themKick, index });
+  }
+  return kicks;
 }
 
 function AdStrip({ locale }: { locale: Locale }) {
@@ -642,11 +663,12 @@ function AnimatedFixture({
   const t = messages[locale];
   const [firstHalfExtra, secondHalfExtra] = stoppageMinutes(match.gf, match.ga, index);
   const timing = revealTiming(msPerMin, firstHalfExtra, secondHalfExtra);
-  const [elapsed, setElapsed] = useState(instant ? timing.p5End : -1);
+  const finalElapsed = timing.p5End + 600 + revealExtraDuration(match, msPerMin);
+  const [elapsed, setElapsed] = useState(instant ? finalElapsed : -1);
 
   useEffect(() => {
     if (!active || instant) {
-      const resetTimer = window.setTimeout(() => setElapsed(timing.p5End), 0);
+      const resetTimer = window.setTimeout(() => setElapsed(finalElapsed), 0);
       return () => window.clearTimeout(resetTimer);
     }
     const resetTimer = window.setTimeout(() => setElapsed(-1), 0);
@@ -654,13 +676,13 @@ function AnimatedFixture({
     const interval = window.setInterval(() => {
       const next = Date.now() - startedAt - revealKickoffDelay;
       setElapsed(Math.max(-1, next));
-      if (next >= timing.p5End) window.clearInterval(interval);
+      if (next >= finalElapsed) window.clearInterval(interval);
     }, 60);
     return () => {
       window.clearTimeout(resetTimer);
       window.clearInterval(interval);
     };
-  }, [active, instant, timing.p5End]);
+  }, [active, finalElapsed, instant]);
 
   const inProgress = active && !instant && elapsed < timing.p5End;
   const pending = active && !instant && elapsed < 0;
@@ -671,6 +693,24 @@ function AnimatedFixture({
   const latestGoal = visibleGoals.at(-1);
   const showFinal = !pending && !inProgress;
   const mark = match.phase === "FINAL" && match.advanced ? "*" : match.advanced ? "V" : "X";
+  const penaltyKicks = match.penalties ? penaltyTimeline(match.penalties) : [];
+  const penaltyStart = timing.p5End + 600;
+  const visiblePenaltyCount =
+    match.penalties && showFinal
+      ? instant
+        ? penaltyKicks.length
+        : Math.min(penaltyKicks.length, Math.max(0, Math.floor((elapsed - penaltyStart) / penaltyKickDuration(msPerMin))))
+      : 0;
+  const visiblePenaltyKicks = penaltyKicks.slice(0, visiblePenaltyCount);
+  const visibleMeKicks = visiblePenaltyKicks.filter((kick) => kick.side === "me");
+  const visibleThemKicks = visiblePenaltyKicks.filter((kick) => kick.side === "them");
+  const nextPenaltyKick = match.penalties && visiblePenaltyCount < penaltyKicks.length ? penaltyKicks[visiblePenaltyCount] : null;
+  const penaltyComplete = Boolean(match.penalties && visiblePenaltyCount >= penaltyKicks.length);
+  const livePenaltyScore = match.penalties
+    ? penaltyComplete
+      ? match.penalties.score
+      : `${visibleMeKicks.reduce((sum, kick) => sum + kick.kick, 0)}-${visibleThemKicks.reduce((sum, kick) => sum + kick.kick, 0)}`
+    : "";
 
   return (
     <article className={`fixture-card sticker reveal-fixture ${match.advanced ? "is-win" : "is-loss"} ${active ? "is-current" : ""}`}>
@@ -701,18 +741,23 @@ function AnimatedFixture({
             ))}
           </div>
           {showFinal && match.penalties && (
-            <div className="fixture-pen">
+            <div className={`fixture-pen ${penaltyComplete ? "is-complete" : "is-live"}`}>
               <span className="eyebrow">{t.reveal.penalties}</span>
-              <span className="num">{match.penalties.score}</span>
+              <span className="num">{livePenaltyScore}</span>
+              {!penaltyComplete && nextPenaltyKick && (
+                <span className="penalty-live">
+                  {penaltyLiveLabels[locale]} · {nextPenaltyKick.side === "me" ? t.reveal.yourTeam : match.opponent}
+                </span>
+              )}
               <div className="penalty-flow">
-                {match.penalties.me.map((kick, kickIndex) => (
-                  <span className={kick ? "made" : "missed"} key={`me-${kickIndex}`}>
+                {visibleMeKicks.map(({ kick, index }) => (
+                  <span className={kick ? "made" : "missed"} key={`me-${index}`}>
                     {kick ? "●" : "×"}
                   </span>
                 ))}
                 <em>vs</em>
-                {match.penalties.them.map((kick, kickIndex) => (
-                  <span className={kick ? "made" : "missed"} key={`them-${kickIndex}`}>
+                {visibleThemKicks.map(({ kick, index }) => (
+                  <span className={kick ? "made" : "missed"} key={`them-${index}`}>
                     {kick ? "●" : "×"}
                   </span>
                 ))}

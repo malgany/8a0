@@ -596,6 +596,18 @@ a {
   border: 1px solid var(--line);
   font-size: 12px;
   font-style: normal;
+  animation: penaltyKickIn 0.22s ease both;
+}
+
+.penalty-live {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .penalty-flow .made {
@@ -614,6 +626,17 @@ a {
   font-style: normal;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+@keyframes penaltyKickIn {
+  from {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes revealCardIn {
@@ -705,6 +728,8 @@ a {
   .reveal-body .goal-flow span,
   .reveal-body .group-table span:not(.eyebrow),
   .reveal-fixture,
+  .penalty-flow span,
+  .penalty-live,
   .score-snap,
   .score-snap-them {
     animation: none !important;
