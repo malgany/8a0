@@ -185,11 +185,11 @@ export function HomePage({ locale }: { locale: Locale }) {
       </section>
       <footer className="home-foot">
         <div className="foot-counts">
-          <span className="num">52</span> {t.home.counts[0]}
+          <span className="num">56</span> {t.home.counts[0]}
           <span className="foot-dot">·</span>
-          <span className="num">250</span> {t.home.counts[1]}
+          <span className="num">294</span> {t.home.counts[1]}
           <span className="foot-dot">·</span>
-          <span className="num">{locale === "pt" ? "5.729" : "5,729"}</span> {t.home.counts[2]}
+          <span className="num">{locale === "pt" ? "6.514" : "6,514"}</span> {t.home.counts[2]}
           <span className="foot-dot">·</span>
           <button className="contest-link">{t.home.contest}</button>
         </div>

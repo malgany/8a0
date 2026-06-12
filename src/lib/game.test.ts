@@ -26,6 +26,7 @@ describe("8a0 dataset", () => {
     const players = squadIndex.flatMap((meta) => readSquad(meta.slug).squad);
     expect(players).toHaveLength(6514);
     expect(players.every((player) => player.playerId && player.name && player.positions.length > 0)).toBe(true);
+    expect(players.filter((player) => player.copa < 1950).every((player) => player.force === 75 && player.number === 0)).toBe(true);
   });
 });
 

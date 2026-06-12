@@ -66,6 +66,10 @@ export const nations: Record<
   HUN: { pt: "Hungria", en: "Hungary", es: "Hungría", flag: "🇭🇺" },
   NIR: { pt: "Irlanda do Norte", en: "Northern Ireland", es: "Irlanda del Norte", flag: "🇬🇧" },
   WAL: { pt: "País de Gales", en: "Wales", es: "Gales", flag: "🏴" },
+  BOL: { pt: "Bolivia", en: "Bolivia", es: "Bolivia", flag: "" },
+  CUB: { pt: "Cuba", en: "Cuba", es: "Cuba", flag: "" },
+  DEI: { pt: "Indias Orientais Holandesas", en: "Dutch East Indies", es: "Indias Orientales Holandesas", flag: "" },
+  NOR: { pt: "Noruega", en: "Norway", es: "Noruega", flag: "" },
 };
 
 export function nationName(code: string, locale: Locale = "pt") {
