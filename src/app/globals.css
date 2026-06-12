@@ -544,6 +544,25 @@ a {
   font-size: 22px;
 }
 
+.reveal-final-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.reveal-final-actions .reveal-next {
+  margin-top: 0;
+}
+
+.reveal-repeat {
+  min-height: 42px;
+  padding: 8px 13px;
+  font-size: 12px;
+  box-shadow: none;
+}
+
 .reveal-head-animated {
   display: flex;
   align-items: flex-start;
@@ -613,8 +632,8 @@ a {
   transition: box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.reveal-fixture.is-current,
-.reveal-fixture.is-expanded {
+.reveal-fixture.is-win.is-current,
+.reveal-fixture.is-win.is-expanded {
   box-shadow: inset 4px 0 0 var(--win), 0 3px 0 var(--line);
 }
 
@@ -624,13 +643,35 @@ a {
   box-shadow: inset 4px 0 0 var(--accent), 0 3px 0 var(--line);
 }
 
+.reveal-fixture.is-live.is-current,
+.reveal-fixture.is-live.is-expanded {
+  box-shadow: inset 4px 0 0 var(--line), 0 3px 0 var(--line);
+}
+
 .reveal-score {
   display: grid;
   grid-template-columns: 86px minmax(0, 1fr) auto 28px 14px;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-height: 82px;
   padding: 14px 18px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background 0.18s ease;
+}
+
+.reveal-score:hover:not(.is-expanded) {
+  background: color-mix(in srgb, var(--win) 6%, transparent);
+}
+
+.theme-panini .reveal-score:hover:not(.is-expanded) {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .fx-phase {
@@ -682,6 +723,10 @@ a {
   color: var(--accent);
 }
 
+.reveal-fixture.is-live .fx-score {
+  color: var(--ink);
+}
+
 .reveal-score .fx-score.is-pending {
   color: var(--muted);
   font-size: 20px;
@@ -707,6 +752,10 @@ a {
 
 .reveal-fixture.is-loss .fixture-clock {
   color: var(--accent);
+}
+
+.reveal-fixture.is-live .fixture-clock {
+  color: var(--muted);
 }
 
 .fixture-clock b.num {
@@ -737,6 +786,10 @@ a {
 
 .reveal-fixture.is-loss .reveal-score.is-expanded .rv-caret {
   color: var(--accent);
+}
+
+.reveal-fixture.is-live .reveal-score.is-expanded .rv-caret {
+  color: var(--muted);
 }
 
 .fx-scorers {
@@ -1006,10 +1059,18 @@ a {
 }
 
 .campaign-summary {
+  display: flex;
+  align-items: center;
+  gap: 28px;
   margin-top: 30px;
-  padding: 30px 28px 32px;
+  padding: 28px 34px;
   background: var(--ink);
   color: var(--surface);
+}
+
+.summary-mark {
+  flex: 0 0 auto;
+  min-width: 230px;
 }
 
 .summary-record {
@@ -1020,21 +1081,27 @@ a {
 
 .summary-score {
   display: block;
-  margin: 6px 0 24px;
+  margin: 6px 0 0;
   color: #fff;
-  font-size: clamp(70px, 18vw, 118px);
+  font-size: clamp(78px, 11vw, 116px);
   line-height: 0.85;
   text-shadow: 4px 4px 0 var(--accent-2);
 }
 
 .campaign-summary hr {
+  align-self: stretch;
   border: 0;
-  border-top: 2px solid rgba(255, 255, 255, 0.22);
-  margin: 0 0 24px;
+  border-left: 2px solid rgba(255, 255, 255, 0.22);
+  margin: 0;
+}
+
+.summary-detail {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .campaign-summary h2 {
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   font-family: var(--display);
   font-size: 30px;
   line-height: 1;
@@ -1045,6 +1112,7 @@ a {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
+  min-width: 0;
 }
 
 .summary-stats b {
@@ -1216,12 +1284,54 @@ a {
     font-size: 14px;
   }
 
+  .campaign-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 26px;
+  }
+
+  .summary-mark {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .summary-score {
+    font-size: clamp(72px, 22vw, 104px);
+  }
+
+  .campaign-summary hr {
+    align-self: stretch;
+    width: 100%;
+    border-left: 0;
+    border-top: 2px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .campaign-summary h2 {
+    font-size: 28px;
+  }
+
   .summary-stats {
     gap: 12px;
   }
 
   .summary-stats b {
     font-size: 38px;
+  }
+
+  .reveal-final-actions {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .reveal-final-actions .reveal-next {
+    flex: 1 1 180px;
+    min-height: 64px;
+    font-size: 20px;
+  }
+
+  .reveal-repeat {
+    flex: 0 0 auto;
   }
 }
 

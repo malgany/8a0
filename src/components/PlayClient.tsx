@@ -622,16 +622,19 @@ function AnimatedRevealView({
   result,
   draft,
   onDone,
+  onAgain,
 }: {
   locale: Locale;
   result: NonNullable<ReturnType<typeof simulateCampaign>>;
   draft: Draft;
   onDone: () => void;
+  onAgain: () => void;
 }) {
   const t = messages[locale];
   const controls = revealControlLabels[locale];
   const [visibleCount, setVisibleCount] = useState(0);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [readyForNext, setReadyForNext] = useState(true);
   const [mode, setMode] = useState<RevealMode>(() =>
     typeof window !== "undefined" && localStorage.getItem("s70-reveal") === "auto" ? "auto" : "manual",
@@ -663,6 +666,7 @@ function AnimatedRevealView({
     const nextIndex = visibleCount;
     setVisibleCount(nextIndex + 1);
     setActiveIndex(nextIndex);
+    setExpandedIndex(nextIndex);
     if (reducedMotion) {
       setReadyForNext(true);
       return;
@@ -703,6 +707,10 @@ function AnimatedRevealView({
   function setRevealSpeed(next: RevealSpeed) {
     setSpeed(next);
     localStorage.setItem("7a0-speed", next);
+  }
+
+  function toggleFixture(index: number) {
+    setExpandedIndex((current) => (current === index ? null : index));
   }
 
   const showNextButton = readyForNext && (mode === "manual" || campaignComplete);
@@ -747,21 +755,32 @@ function AnimatedRevealView({
         {visible.map((match, index) => (
           <AnimatedFixture
             active={index === activeIndex}
+            expanded={expandedIndex === index}
             instant={reducedMotion || index !== activeIndex}
             index={index}
             key={`${match.phase}-${index}`}
             locale={locale}
             match={match}
             msPerMin={msPerMin}
+            onToggle={() => toggleFixture(index)}
           />
         ))}
       </div>
       {campaignComplete && <RevealSummary locale={locale} result={result} />}
-      {showNextButton && (
-        <button className="btn btn-primary reveal-next" onClick={campaignComplete ? onDone : revealNext} type="button">
-          {campaignComplete ? t.reveal.card : visibleCount === 0 ? t.reveal.first : t.reveal.next}
+      {campaignComplete ? (
+        <div className="reveal-final-actions">
+          <button className="btn btn-secondary reveal-repeat" onClick={onAgain} type="button">
+            {"\u21bb"} {t.card.again}
+          </button>
+          <button className="btn btn-primary reveal-next" onClick={onDone} type="button">
+            {t.reveal.card}
+          </button>
+        </div>
+      ) : showNextButton ? (
+        <button className="btn btn-primary reveal-next" onClick={revealNext} type="button">
+          {visibleCount === 0 ? t.reveal.first : t.reveal.next}
         </button>
-      )}
+      ) : null}
     </main>
   );
 }
@@ -777,25 +796,29 @@ function RevealSummary({
   const goalsAgainstLabel = locale === "pt" ? "sofridos" : locale === "es" ? "recibidos" : "against";
   return (
     <section className="campaign-summary">
-      <span className="num summary-record">{result.record}</span>
-      <strong className="num summary-score">
-        {result.wins}-{result.losses}
-      </strong>
+      <div className="summary-mark">
+        <span className="num summary-record">{result.record}</span>
+        <strong className="num summary-score">
+          {result.wins}-{result.losses}
+        </strong>
+      </div>
       <hr />
-      <h2>{result.champion ? t.reveal.champion : t.reveal.eliminated}</h2>
-      <div className="summary-stats">
-        <span>
-          <b className="num">{result.gf}</b>
-          <small>{t.card.gf}</small>
-        </span>
-        <span>
-          <b className="num">{result.ga}</b>
-          <small>{goalsAgainstLabel}</small>
-        </span>
-        <span>
-          <b className="num">{result.wins}</b>
-          <small>{t.card.wins}</small>
-        </span>
+      <div className="summary-detail">
+        <h2>{result.champion ? t.reveal.champion : t.reveal.eliminated}</h2>
+        <div className="summary-stats">
+          <span>
+            <b className="num">{result.gf}</b>
+            <small>{t.card.gf}</small>
+          </span>
+          <span>
+            <b className="num">{result.ga}</b>
+            <small>{goalsAgainstLabel}</small>
+          </span>
+          <span>
+            <b className="num">{result.wins}</b>
+            <small>{t.card.wins}</small>
+          </span>
+        </div>
       </div>
     </section>
   );
@@ -846,18 +869,22 @@ function PenaltyRound({
 
 function AnimatedFixture({
   active,
+  expanded,
   instant,
   index,
   locale,
   match,
   msPerMin,
+  onToggle,
 }: {
   active: boolean;
+  expanded: boolean;
   instant: boolean;
   index: number;
   locale: Locale;
   match: CampaignMatch;
   msPerMin: number;
+  onToggle: () => void;
 }) {
   const t = messages[locale];
   const [firstHalfExtra, secondHalfExtra] = stoppageMinutes(match.gf, match.ga, index);
@@ -917,17 +944,23 @@ function AnimatedFixture({
   const goalSummary = summarizeGoals(visibleGoals, "me");
   const concededSummary = summarizeGoals(visibleGoals, "them");
   const code = opponentCode(match.opponent);
-  const expanded = active;
   const showBody = !pending && expanded;
   const showHeaderSummary = !pending && !expanded && (goalSummary || concededSummary);
   const groupPosition = match.groupTable?.findIndex((row) => row.me) ?? -1;
   const groupRankText = groupPosition >= 0 ? groupRank(groupPosition, locale) : "";
+  const hasFinalTone = !active || instant || showFinal;
+  const resultTone = hasFinalTone ? (match.advanced ? "is-win" : "is-loss") : "is-live";
 
   return (
     <article
-      className={`fixture-card sticker reveal-fixture ${match.advanced ? "is-win" : "is-loss"} ${active ? "is-current is-expanded" : ""} ${match.penalties && showFinal ? "is-pen" : ""}`}
+      className={`fixture-card sticker reveal-fixture ${resultTone} ${active ? "is-current" : ""} ${expanded ? "is-expanded" : ""} ${match.penalties && showFinal ? "is-pen" : ""}`}
     >
-      <div className={`fixture-score reveal-score ${expanded ? "is-expanded" : ""}`}>
+      <button
+        aria-expanded={expanded}
+        className={`fixture-score reveal-score ${expanded ? "is-expanded" : ""}`}
+        onClick={onToggle}
+        type="button"
+      >
         <span className="fx-phase">{match.phase}</span>
         <span className="fx-opp">
           <span className="fx-vs">vs</span>
@@ -963,7 +996,7 @@ function AnimatedFixture({
             )}
           </span>
         )}
-      </div>
+      </button>
       {showBody && (
         <div className={`reveal-body ${instant ? "is-instant" : ""}`}>
           {visibleGoals.length > 0 && (
@@ -1232,6 +1265,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
         result={result}
         draft={draft}
         onDone={() => setPhase("result")}
+        onAgain={again}
       />
     );
   }
