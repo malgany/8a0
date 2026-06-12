@@ -49,6 +49,26 @@ const penaltyLiveLabels: Record<Locale, string> = {
   en: "Taking",
   es: "Patea",
 };
+const penaltyStageLabels: Record<Locale, { bestOfFive: string; suddenDeath: string; advanced: string; eliminated: string }> = {
+  pt: {
+    bestOfFive: "Disputa de p\u00eanaltis \u00b7 melhor de 5",
+    suddenDeath: "Alternadas (morte s\u00fabita)",
+    advanced: "avan\u00e7ou",
+    eliminated: "eliminado",
+  },
+  en: {
+    bestOfFive: "Penalty shootout \u00b7 best of 5",
+    suddenDeath: "Sudden death",
+    advanced: "advanced",
+    eliminated: "eliminated",
+  },
+  es: {
+    bestOfFive: "Tanda de penales \u00b7 mejor de 5",
+    suddenDeath: "Alternadas (muerte s\u00fabita)",
+    advanced: "avanza",
+    eliminated: "eliminado",
+  },
+};
 const revealControlLabels: Record<
   Locale,
   {
@@ -110,7 +130,9 @@ function penaltyKickDuration(msPerMin: number) {
 
 function revealExtraDuration(match: CampaignMatch, msPerMin: number) {
   if (match.penalties) {
-    return 2 * Math.max(match.penalties.me.length, match.penalties.them.length) * penaltyKickDuration(msPerMin) + 520;
+    const baseKicks = match.penalties.me.length + match.penalties.them.length;
+    const suddenDeathKicks = (match.penalties.sd?.me.length ?? 0) + (match.penalties.sd?.them.length ?? 0);
+    return (baseKicks + suddenDeathKicks) * penaltyKickDuration(msPerMin) + 720;
   }
   if (match.groupTable) return 210 * match.groupTable.length + 520;
   return 520;
@@ -145,15 +167,51 @@ function clockFromElapsed(elapsed: number, msPerMin: number, firstHalfExtra: num
 }
 
 function penaltyTimeline(penalties: NonNullable<CampaignMatch["penalties"]>) {
-  const kicks: Array<{ side: "me" | "them"; kick: number; index: number }> = [];
+  const kicks: Array<{ side: "me" | "them"; kick: number; index: number; stage: "base" | "sd"; name?: string }> = [];
   const rounds = Math.max(penalties.me.length, penalties.them.length);
   for (let index = 0; index < rounds; index += 1) {
     const meKick = penalties.me[index];
     const themKick = penalties.them[index];
-    if (meKick !== undefined) kicks.push({ side: "me", kick: meKick, index });
-    if (themKick !== undefined) kicks.push({ side: "them", kick: themKick, index });
+    if (meKick !== undefined) kicks.push({ side: "me", kick: meKick, index, stage: "base", name: penalties.meNames?.[index] });
+    if (themKick !== undefined) kicks.push({ side: "them", kick: themKick, index, stage: "base", name: penalties.themNames?.[index] });
+  }
+  const suddenDeath = penalties.sd;
+  if (suddenDeath) {
+    const suddenDeathRounds = Math.max(suddenDeath.me.length, suddenDeath.them.length);
+    for (let index = 0; index < suddenDeathRounds; index += 1) {
+      const meKick = suddenDeath.me[index];
+      const themKick = suddenDeath.them[index];
+      if (meKick !== undefined) kicks.push({ side: "me", kick: meKick, index, stage: "sd", name: suddenDeath.meNames?.[index] });
+      if (themKick !== undefined) kicks.push({ side: "them", kick: themKick, index, stage: "sd", name: suddenDeath.themNames?.[index] });
+    }
   }
   return kicks;
+}
+
+function penaltyKickKey(kick: { side: "me" | "them"; index: number; stage: "base" | "sd" }) {
+  return `${kick.stage}:${kick.side}:${kick.index}`;
+}
+
+function penaltyRows(
+  penalties: NonNullable<CampaignMatch["penalties"]>,
+  stage: "base" | "sd",
+  visibleKickKeys: Set<string>,
+) {
+  const source =
+    stage === "base"
+      ? { me: penalties.me, them: penalties.them, meNames: penalties.meNames, themNames: penalties.themNames }
+      : penalties.sd;
+  if (!source) return [];
+  const rounds = Math.max(source.me.length, source.them.length);
+  return Array.from({ length: rounds }, (_, index) => {
+    const meVisible = visibleKickKeys.has(`${stage}:me:${index}`);
+    const themVisible = visibleKickKeys.has(`${stage}:them:${index}`);
+    return {
+      index,
+      me: meVisible && source.me[index] !== undefined ? { kick: source.me[index]!, name: source.meNames?.[index] } : null,
+      them: themVisible && source.them[index] !== undefined ? { kick: source.them[index]!, name: source.themNames?.[index] } : null,
+    };
+  }).filter((row) => row.me || row.them);
 }
 
 function opponentCode(label: string) {
@@ -743,6 +801,49 @@ function RevealSummary({
   );
 }
 
+function PenaltyKickMark({ kick }: { kick: number }) {
+  return (
+    <span className={`rv-kick ${kick ? "is-goal" : "is-miss"}`} aria-hidden="true">
+      {kick ? "\u2022" : "\u00d7"}
+    </span>
+  );
+}
+
+function PenaltyRound({
+  locale,
+  me,
+  opponent,
+  opponentName,
+}: {
+  locale: Locale;
+  me: { kick: number; name?: string } | null;
+  opponent: { kick: number; name?: string } | null;
+  opponentName: string;
+}) {
+  const t = messages[locale];
+  return (
+    <div className="rv-pen-round">
+      <span className="rv-kick-row rv-kick-row--me">
+        {me && (
+          <>
+            <PenaltyKickMark kick={me.kick} />
+            <span className="rv-kick-name">{me.name ?? t.reveal.yourTeam}</span>
+          </>
+        )}
+      </span>
+      <span className="rv-pen-vs">vs</span>
+      <span className="rv-kick-row rv-kick-row--them">
+        {opponent && (
+          <>
+            <span className="rv-kick-name">{opponent.name ?? opponentName}</span>
+            <PenaltyKickMark kick={opponent.kick} />
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
+
 function AnimatedFixture({
   active,
   instant,
@@ -809,6 +910,9 @@ function AnimatedFixture({
       ? match.penalties.score
       : `${visibleMeKicks.reduce((sum, kick) => sum + kick.kick, 0)}-${visibleThemKicks.reduce((sum, kick) => sum + kick.kick, 0)}`
     : "";
+  const visiblePenaltyKeys = new Set(visiblePenaltyKicks.map(penaltyKickKey));
+  const basePenaltyRows = match.penalties ? penaltyRows(match.penalties, "base", visiblePenaltyKeys) : [];
+  const suddenDeathPenaltyRows = match.penalties ? penaltyRows(match.penalties, "sd", visiblePenaltyKeys) : [];
   const scoreText = pending ? "\u00b7 \u00b7 \u00b7" : `${liveGf}-${liveGa}`;
   const goalSummary = summarizeGoals(visibleGoals, "me");
   const concededSummary = summarizeGoals(visibleGoals, "them");
@@ -881,26 +985,32 @@ function AnimatedFixture({
           )}
           {showFinal && match.penalties && (
             <div className={`fixture-pen ${penaltyComplete ? "is-complete" : "is-live"}`}>
-              <span className="eyebrow">{t.reveal.penalties}</span>
-              <span className="num">{livePenaltyScore}</span>
+              <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].bestOfFive}</div>
               {!penaltyComplete && nextPenaltyKick && (
                 <span className="penalty-live">
-                  {penaltyLiveLabels[locale]} {"\u00b7"} {nextPenaltyKick.side === "me" ? t.reveal.yourTeam : match.opponent}
+                  {penaltyLiveLabels[locale]} {"\u00b7"} {nextPenaltyKick.name ?? (nextPenaltyKick.side === "me" ? t.reveal.yourTeam : match.opponent)}
                 </span>
               )}
-              <div className="penalty-flow">
-                {visibleMeKicks.map(({ kick, index }) => (
-                  <span className={kick ? "made" : "missed"} key={`me-${index}`}>
-                    {kick ? "\u25cf" : "\u00d7"}
-                  </span>
-                ))}
-                <em>vs</em>
-                {visibleThemKicks.map(({ kick, index }) => (
-                  <span className={kick ? "made" : "missed"} key={`them-${index}`}>
-                    {kick ? "\u25cf" : "\u00d7"}
-                  </span>
+              <div className="rv-pens-rounds">
+                {basePenaltyRows.map((row) => (
+                  <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={match.opponent} key={`base-${row.index}`} />
                 ))}
               </div>
+              {suddenDeathPenaltyRows.length > 0 && (
+                <div className="rv-sd">
+                  <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].suddenDeath}</div>
+                  <div className="rv-pens-rounds">
+                    {suddenDeathPenaltyRows.map((row) => (
+                      <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={match.opponent} key={`sd-${row.index}`} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {visiblePenaltyCount > 0 && (
+                <div className="rv-pens-out">
+                  <span className="num">{livePenaltyScore}</span> {penaltyComplete ? penaltyStageLabels[locale][match.advanced ? "advanced" : "eliminated"] : ""}
+                </div>
+              )}
             </div>
           )}
           {showFinal && match.groupTable && (

@@ -4,6 +4,7 @@ import type {
   Draft,
   DraftOptions,
   Formation,
+  PenaltyResult,
   Player,
   Position,
   SimResult,
@@ -589,18 +590,102 @@ function goalMinutes(random: () => number, me: string[], them: string[]) {
     .sort((a, b) => a.minute - b.minute);
 }
 
-function penalties(random: () => number, advanced: boolean) {
-  const me = Array.from({ length: 5 }, () => +(random() < 0.78));
-  const them = Array.from({ length: 5 }, () => +(random() < 0.78));
-  let meScore = me.reduce((sum, value) => sum + value, 0);
-  let themScore = them.reduce((sum, value) => sum + value, 0);
-  if (meScore === themScore) {
-    if (advanced) meScore += 1;
-    else themScore += 1;
-  } else if ((meScore > themScore) !== advanced) {
-    [meScore, themScore] = [themScore, meScore];
+function sum(values: number[]) {
+  return values.reduce((total, value) => total + value, 0);
+}
+
+function penaltyShootoutCutoff(me: number[], them: number[]) {
+  let meScore = 0;
+  let themScore = 0;
+  const rounds = me.length;
+  for (let index = 0; index < rounds; index += 1) {
+    meScore += me[index] ?? 0;
+    if (meScore > themScore + (rounds - index)) return { meCount: index + 1, themCount: index };
+    themScore += them[index] ?? 0;
+    const remaining = rounds - 1 - index;
+    if (meScore > themScore + remaining || themScore > meScore + remaining) {
+      return { meCount: index + 1, themCount: index + 1 };
+    }
   }
-  return { me, them, score: `${meScore}–${themScore}` };
+  return { meCount: rounds, themCount: rounds };
+}
+
+function penaltyTakerNames(squad: Player[], count: number) {
+  if (count <= 0 || squad.length === 0) return undefined;
+  const ordered = [...squad].sort((left, right) => {
+    const leftGoalkeeper = Number(left.positions.includes("GOL"));
+    const rightGoalkeeper = Number(right.positions.includes("GOL"));
+    return leftGoalkeeper - rightGoalkeeper || right.force - left.force;
+  });
+  return Array.from({ length: count }, (_, index) => ordered[index % ordered.length]?.name ?? "?");
+}
+
+function penalties(random: () => number, advanced: boolean, meSquad: Player[], themSquad: Player[]): PenaltyResult {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const me = Array.from({ length: 5 }, () => +(random() < 0.78));
+    const them = Array.from({ length: 5 }, () => +(random() < 0.78));
+    const meScore = sum(me);
+    const themScore = sum(them);
+    const expectedWinnerScore = advanced ? meScore : themScore;
+    const expectedLoserScore = advanced ? themScore : meScore;
+    if (expectedWinnerScore > expectedLoserScore) {
+      const cutoff = penaltyShootoutCutoff(me, them);
+      return {
+        me: me.slice(0, cutoff.meCount),
+        them: them.slice(0, cutoff.themCount),
+        score: `${meScore}-${themScore}`,
+        meNames: penaltyTakerNames(meSquad, cutoff.meCount),
+        themNames: penaltyTakerNames(themSquad, cutoff.themCount),
+      };
+    }
+    if (meScore === themScore) {
+      const sdMe: number[] = [];
+      const sdThem: number[] = [];
+      let liveMeScore = meScore;
+      let liveThemScore = themScore;
+      for (let round = 0; liveMeScore === liveThemScore && round < 5; round += 1) {
+        const meKick = +(random() < 0.78);
+        const themKick = +(random() < 0.78);
+        if (meKick !== themKick) {
+          const winnerKick = +advanced;
+          const loserKick = +!advanced;
+          sdMe.push(winnerKick);
+          sdThem.push(loserKick);
+          liveMeScore += winnerKick;
+          liveThemScore += loserKick;
+        } else {
+          sdMe.push(meKick);
+          sdThem.push(themKick);
+          liveMeScore += meKick;
+          liveThemScore += themKick;
+        }
+      }
+      if (liveMeScore === liveThemScore) {
+        const winnerKick = +advanced;
+        const loserKick = +!advanced;
+        sdMe.push(winnerKick);
+        sdThem.push(loserKick);
+        liveMeScore += winnerKick;
+        liveThemScore += loserKick;
+      }
+      return {
+        me,
+        them,
+        score: `${liveMeScore}-${liveThemScore}`,
+        meNames: penaltyTakerNames(meSquad, me.length),
+        themNames: penaltyTakerNames(themSquad, them.length),
+        sd: {
+          me: sdMe,
+          them: sdThem,
+          meNames: penaltyTakerNames(meSquad, me.length + sdMe.length)?.slice(me.length),
+          themNames: penaltyTakerNames(themSquad, them.length + sdThem.length)?.slice(them.length),
+        },
+      };
+    }
+  }
+  return advanced
+    ? { me: [1], them: [0], score: "1-0", meNames: penaltyTakerNames(meSquad, 1), themNames: penaltyTakerNames(themSquad, 1) }
+    : { me: [0], them: [1], score: "0-1", meNames: penaltyTakerNames(meSquad, 1), themNames: penaltyTakerNames(themSquad, 1) };
 }
 
 function groupStandings(
@@ -724,6 +809,10 @@ export function simulateCampaign(
     }
 
     const opponent = phase.opponent;
+    const opponentSquad = opponentSquads[opponentIndex];
+    const opponentMeta = opponentSquad ?? fallbackOpponents[opponentIndex];
+    const label = opponentLabel(opponentMeta, opponent.label);
+    opponentIndex += 1;
     const match = playMatch(random, stats.attack, stats.defense, opponent.overall);
     gf += match.gf;
     ga += match.ga;
@@ -735,15 +824,11 @@ export function simulateCampaign(
       const tiebreakStrength = (stats.attack + stats.defense) / 2;
       const chance = clamp(0.5 + (tiebreakStrength - opponent.overall) * 0.012, 0.1, 0.9);
       advanced = random() < chance;
-      penaltyResult = penalties(rng(`${seed}:pen:${campaign.length}`), advanced);
+      penaltyResult = penalties(rng(`${seed}:pen:${campaign.length}`), advanced, selected, opponentSquad?.squad ?? []);
     }
     if (advanced) wins += 1;
     else losses += 1;
     eliminated = !advanced;
-    const opponentSquad = opponentSquads[opponentIndex];
-    const opponentMeta = opponentSquad ?? fallbackOpponents[opponentIndex];
-    const label = opponentLabel(opponentMeta, opponent.label);
-    opponentIndex += 1;
     const scorers = weightedGoalScorers(scorerRandom, selected, match.gf);
     const conceded = weightedGoalScorers(scorerRandom, opponentSquad?.squad ?? [], match.ga);
     campaign.push({

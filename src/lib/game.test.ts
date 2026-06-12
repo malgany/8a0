@@ -77,4 +77,17 @@ describe("game model", () => {
     expect(result.campaign[0]?.opponent).toMatch(/^[A-Z]{3} \d{4}$/);
     expect(result.campaign[0]?.opponent).not.toMatch(/Grupo|Oitavas|Quartas|Semifinal|Final/);
   });
+
+  it("adds named penalty takers to shootouts", () => {
+    const squad = readSquad("BRA-1970-43aa9180");
+    const opponents = squadIndex.slice(0, 7).map((meta) => readSquad(meta.slug));
+    const draft = createDraft("fixed", defaultOptions);
+    draft.filled = squad.squad.slice(0, 11);
+    let shootout = null as ReturnType<typeof simulateCampaign>["campaign"][number] | null;
+    for (let index = 0; index < 1500 && !shootout; index += 1) {
+      shootout = simulateCampaign(`pens-${index}`, draft, opponents).campaign.find((match) => Boolean(match.penalties)) ?? null;
+    }
+    expect(shootout?.penalties?.meNames?.length).toBeGreaterThan(0);
+    expect(shootout?.penalties?.themNames?.length).toBeGreaterThan(0);
+  });
 });

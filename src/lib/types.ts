@@ -78,6 +78,14 @@ export interface PenaltyResult {
   score: string;
   me: number[];
   them: number[];
+  meNames?: string[];
+  themNames?: string[];
+  sd?: {
+    me: number[];
+    them: number[];
+    meNames?: string[];
+    themNames?: string[];
+  };
 }
 
 export interface CampaignMatch {
