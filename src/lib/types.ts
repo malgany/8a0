@@ -24,7 +24,7 @@ export interface Player {
   sel: string;
   copa: number;
   positions: Position[];
-  number: number;
+  number: number | null;
   force: number;
   legend: boolean;
 }

@@ -5,6 +5,7 @@ import {
   calculateStats,
   createDraft,
   defaultOptions,
+  findSquadMeta,
   formations,
   rng,
   simulateCampaign,
@@ -14,6 +15,21 @@ import {
 import type { Player, SquadFile } from "./types";
 
 const groupLetters = "ABCDEFGHIJKL".split("");
+const earlyWorldCupYears = new Set([1930, 1934, 1938]);
+const earlyHighlightedRanges = [
+  { sel: "URU", copa: 1930, min: 85, max: 95, ids: ["jose-leandro-andrade", "jose-nasazzi", "hector-scarone", "pedro-cea"] },
+  { sel: "ARG", copa: 1930, min: 85, max: 92, ids: ["guillermo-stabile", "luis-monti", "francisco-varallo", "manuel-ferreira"] },
+  { sel: "USA", copa: 1930, min: 85, max: 89, ids: ["bert-patenaude", "billy-gonsalves", "jim-brown"] },
+  { sel: "ITA", copa: 1934, min: 85, max: 95, ids: ["giuseppe-meazza", "luis-monti-ita-1934", "raimundo-orsi", "giovanni-ferrari", "angelo-schiavio", "gianpiero-combi"] },
+  { sel: "TCH", copa: 1934, min: 85, max: 90, ids: ["frantisek-planicka", "oldrich-nejedly", "antonin-puc"] },
+  { sel: "GER", copa: 1934, min: 85, max: 90, ids: ["edmund-conen", "fritz-szepan", "ernst-lehner"] },
+  { sel: "ITA", copa: 1938, min: 85, max: 95, ids: ["giuseppe-meazza-ita-1938", "silvio-piola", "giovanni-ferrari-ita-1938", "gino-colaussi"] },
+  { sel: "HUN", copa: 1938, min: 85, max: 90, ids: ["gyorgy-sarosi-hun-1938", "gyula-zsengeller", "pal-titkos"] },
+  { sel: "BRA", copa: 1938, min: 85, max: 95, ids: ["leonidas-bra-1938", "domingos-da-guia-bra-1938", "romeu", "peracio"] },
+];
+const earlyHighlightedKeys = new Set(
+  earlyHighlightedRanges.flatMap((group) => group.ids.map((id) => `${group.sel}:${group.copa}:${id}`)),
+);
 
 function readSquad(slug: string): SquadFile {
   return JSON.parse(readFileSync(path.join(process.cwd(), "public", "squads", `${slug}.json`), "utf8")) as SquadFile;
@@ -39,7 +55,20 @@ describe("8a0 dataset", () => {
     const players = squadIndex.flatMap((meta) => readSquad(meta.slug).squad);
     expect(players).toHaveLength(6514);
     expect(players.every((player) => player.playerId && player.name && player.positions.length > 0)).toBe(true);
-    expect(players.filter((player) => player.copa < 1950).every((player) => player.force === 75 && player.number === 0)).toBe(true);
+    expect(players.every((player) => player.number !== 0)).toBe(true);
+    expect(players.filter((player) => player.copa < 1954).every((player) => player.number === null)).toBe(true);
+    for (const group of earlyHighlightedRanges) {
+      const squad = readSquad(findSquadMeta(group.sel, group.copa)!.slug).squad;
+      const highlighted = squad.filter((player) => group.ids.includes(player.playerId));
+      const forceValues = new Set(highlighted.map((player) => player.force));
+      expect(highlighted).toHaveLength(group.ids.length);
+      expect(forceValues.size).toBe(group.ids.length);
+      expect(highlighted.every((player) => player.legend && player.force >= group.min && player.force <= group.max)).toBe(true);
+    }
+    const earlyRegulars = players.filter(
+      (player) => earlyWorldCupYears.has(player.copa) && !earlyHighlightedKeys.has(`${player.sel}:${player.copa}:${player.playerId}`),
+    );
+    expect(earlyRegulars.every((player) => player.force >= 73 && player.force <= 86)).toBe(true);
   });
 });
 

@@ -24,6 +24,7 @@ import {
 } from "@/lib/game";
 import { localePath, messages, positionLabels, styleLabels } from "@/lib/i18n";
 import { nationFlag, nationFlagImageUrl, nationName } from "@/lib/nations";
+import { formatPlayerNumber, formatPlayerNumberWithHash } from "@/lib/player-number";
 import { decodeSharePayload } from "@/lib/share";
 import { SettingsToggle } from "./ChromeControls";
 import { Logo } from "./Logo";
@@ -438,7 +439,7 @@ function Pitch({
                 onClick={() => onSlot(index)}
                 type="button"
               >
-                <span className="disc-circle num">{player ? player.number : positionLabels[locale][slot.pos]}</span>
+                <span className="disc-circle num">{player ? formatPlayerNumber(player.number, locale) : positionLabels[locale][slot.pos]}</span>
                 {player && <span className="disc-name">{player.name}</span>}
               </button>
             );
@@ -582,7 +583,7 @@ function RollPanel({
               disabled={!selectable}
               onClick={() => selectable && onSelect(player)}
             >
-              <span className="pc-num num">#{player.number}</span>
+              <span className="pc-num num">{formatPlayerNumberWithHash(player.number, locale)}</span>
               <span className="pc-name">{player.name}</span>
               <span className="pc-pos">
                 {player.positions.slice(0, 2).map((position) => positionLabels[locale][position]).join("/")}

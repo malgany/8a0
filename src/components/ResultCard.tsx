@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import type { Draft, Locale, Player, SimResult } from "@/lib/types";
 import { calculateStats } from "@/lib/game";
+import { formatPlayerNumber } from "@/lib/player-number";
 import { draftToSharePayload, encodeSharePayload } from "@/lib/share";
 import { messages } from "@/lib/i18n";
 import { nationFlagImageUrl } from "@/lib/nations";
@@ -137,7 +138,7 @@ export function ResultCard({
           <div className="cc-lineup">
             {xi.map((player) => (
               <span className={`cc-chip ${player.legend ? "is-legend" : ""}`} key={`${player.sel}-${player.copa}-${player.playerId}`}>
-                <span className="cc-chip-num num">{player.number}</span>
+                <span className="cc-chip-num num">{formatPlayerNumber(player.number, locale)}</span>
                 <span className={`cc-chip-name ${player.legend ? "foil-text" : ""}`}>{player.name}</span>
                 <span className="cc-chip-org">
                   <CardFlag code={player.sel} />
