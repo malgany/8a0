@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CampaignMatch, Draft, DraftOptions, Locale, Player, SharePayload, SquadFile } from "@/lib/types";
+import type { CampaignMatch, Draft, DraftOptions, Locale, Player, SharePayload, SquadFile, TournamentMatch, TournamentStage, TournamentTeam } from "@/lib/types";
 import {
   availablePositions,
   calculateStats,
@@ -111,6 +111,67 @@ const revealControlLabels: Record<
     speedNormal: "Normal",
     speedFast: "Rápido",
     speedUltra: "Ultra",
+  },
+};
+
+const tournamentLabels: Record<
+  Locale,
+  {
+    button: string;
+    group: string;
+    round: string;
+    table: string;
+    bracket: string;
+    schedule: string;
+    locked: string;
+    pts: string;
+    gd: string;
+    for: string;
+    tbd: string;
+    third: string;
+  }
+> = {
+  pt: {
+    button: "Copa",
+    group: "Grupo",
+    round: "Rodada",
+    table: "Tabela",
+    bracket: "Chave",
+    schedule: "Calendario",
+    locked: "Placar liberado depois do seu jogo",
+    pts: "PTS",
+    gd: "SG",
+    for: "GP",
+    tbd: "A definir",
+    third: "3o",
+  },
+  en: {
+    button: "Cup",
+    group: "Group",
+    round: "Round",
+    table: "Table",
+    bracket: "Bracket",
+    schedule: "Schedule",
+    locked: "Score unlocks after your match",
+    pts: "PTS",
+    gd: "GD",
+    for: "GF",
+    tbd: "TBD",
+    third: "3rd",
+  },
+  es: {
+    button: "Copa",
+    group: "Grupo",
+    round: "Jornada",
+    table: "Tabla",
+    bracket: "Llave",
+    schedule: "Calendario",
+    locked: "Marcador liberado despues de tu partido",
+    pts: "PTS",
+    gd: "DG",
+    for: "GF",
+    tbd: "Por definir",
+    third: "3o",
   },
 };
 
@@ -667,6 +728,196 @@ function RevealView({
   );
 }
 
+
+type TournamentTab = "group" | "round" | "table" | "bracket";
+
+function tournamentTeamName(team: TournamentTeam | undefined, locale: Locale, fallback: string) {
+  if (!team) return fallback;
+  if (team.isUser) return messages[locale].reveal.yourTeam;
+  return team.sel && team.copa ? `${nationName(team.sel, locale)} ${team.copa}` : team.label;
+}
+
+function tournamentMatchScore(match: TournamentMatch, visible: boolean, labels: (typeof tournamentLabels)[Locale]) {
+  if (!visible) return labels.locked;
+  const score = `${match.homeScore}-${match.awayScore}`;
+  return match.penalties ? `${score} (${match.penalties.score})` : score;
+}
+
+function tournamentStageTitle(stage: TournamentStage, locale: Locale) {
+  if (stage === "GROUP") return tournamentLabels[locale].group;
+  if (stage === "ROUND_OF_32") return locale === "pt" ? "16 avos" : locale === "es" ? "Dieciseisavos" : "Round of 32";
+  if (stage === "ROUND_OF_16") return locale === "pt" ? "Oitavas" : locale === "es" ? "Octavos" : "Round of 16";
+  if (stage === "QUARTERFINAL") return locale === "pt" ? "Quartas" : locale === "es" ? "Cuartos" : "Quarterfinals";
+  if (stage === "SEMIFINAL") return "Semifinal";
+  if (stage === "THIRD_PLACE") return locale === "pt" ? "3o lugar" : locale === "es" ? "3er puesto" : "Third place";
+  return "Final";
+}
+
+function panelStandings(teamIds: string[], matches: TournamentMatch[], teamsById: Map<string, TournamentTeam>) {
+  const base = new Map(
+    teamIds.map((teamId, index) => [
+      teamId,
+      { teamId, order: index, played: 0, pts: 0, gf: 0, ga: 0, gd: 0 },
+    ]),
+  );
+  matches.forEach((match) => {
+    const home = base.get(match.homeTeamId);
+    const away = base.get(match.awayTeamId);
+    if (!home || !away) return;
+    home.played += 1;
+    away.played += 1;
+    home.gf += match.homeScore;
+    home.ga += match.awayScore;
+    away.gf += match.awayScore;
+    away.ga += match.homeScore;
+    home.gd = home.gf - home.ga;
+    away.gd = away.gf - away.ga;
+    if (match.homeScore > match.awayScore) home.pts += 3;
+    else if (match.homeScore < match.awayScore) away.pts += 3;
+    else {
+      home.pts += 1;
+      away.pts += 1;
+    }
+  });
+  return [...base.values()].sort((left, right) => {
+    if (right.pts !== left.pts) return right.pts - left.pts;
+    if (right.gd !== left.gd) return right.gd - left.gd;
+    if (right.gf !== left.gf) return right.gf - left.gf;
+    const leftUser = teamsById.get(left.teamId)?.isUser ? -1 : 0;
+    const rightUser = teamsById.get(right.teamId)?.isUser ? -1 : 0;
+    return leftUser - rightUser || left.order - right.order;
+  });
+}
+
+function TournamentMatchRow({
+  locale,
+  match,
+  teamsById,
+  scoreVisible,
+}: {
+  locale: Locale;
+  match: TournamentMatch;
+  teamsById: Map<string, TournamentTeam>;
+  scoreVisible: boolean;
+}) {
+  const labels = tournamentLabels[locale];
+  const home = teamsById.get(match.homeTeamId);
+  const away = teamsById.get(match.awayTeamId);
+  return (
+    <div className={`tour-match ${match.isUserMatch ? "is-user" : ""}`}>
+      <span className="tour-match-team">{tournamentTeamName(home, locale, labels.tbd)}</span>
+      <strong className={`num tour-match-score ${scoreVisible ? "" : "is-locked"}`}>
+        {tournamentMatchScore(match, scoreVisible, labels)}
+      </strong>
+      <span className="tour-match-team">{tournamentTeamName(away, locale, labels.tbd)}</span>
+    </div>
+  );
+}
+
+function TournamentPanel({
+  locale,
+  result,
+  visibleCount,
+}: {
+  locale: Locale;
+  result: NonNullable<ReturnType<typeof simulateCampaign>>;
+  visibleCount: number;
+}) {
+  const labels = tournamentLabels[locale];
+  const [tab, setTab] = useState<TournamentTab>("group");
+  const tournament = result.tournament;
+  const teamsById = useMemo(() => new Map(tournament.teams.map((team) => [team.id, team])), [tournament.teams]);
+  const userGroup = tournament.groups.find((group) => group.group === tournament.userGroup)!;
+  const revealedCampaign = result.campaign.slice(0, visibleCount);
+  const revealedMatchIds = new Set(revealedCampaign.map((match) => match.matchId).filter((id): id is number => typeof id === "number"));
+  const revealedTournamentMatches = tournament.matches.filter((match) => revealedMatchIds.has(match.id));
+  const revealedStages = new Set(revealedTournamentMatches.map((match) => match.stage));
+  const revealedGroupMatchday = Math.max(0, ...revealedTournamentMatches.filter((match) => match.stage === "GROUP").map((match) => match.matchday ?? 0));
+  const nextCampaignMatch = result.campaign[visibleCount];
+  const nextTournamentMatch = nextCampaignMatch?.matchId ? tournament.matches.find((match) => match.id === nextCampaignMatch.matchId) : null;
+  const latestTournamentMatch = revealedTournamentMatches.at(-1) ?? nextTournamentMatch ?? null;
+  const activeStage = latestTournamentMatch?.stage ?? "GROUP";
+  const activeMatchday = activeStage === "GROUP" ? Math.max(1, revealedGroupMatchday || nextTournamentMatch?.matchday || 1) : 0;
+  const groupRoundMatches = tournament.matches.filter((match) => match.stage === "GROUP" && match.group === tournament.userGroup && match.matchday === activeMatchday);
+  const visibleGroupMatches = tournament.matches.filter((match) => match.stage === "GROUP" && match.group === tournament.userGroup && (match.matchday ?? 0) <= revealedGroupMatchday);
+  const liveStandings = revealedGroupMatchday >= 3 ? userGroup.standings : panelStandings(userGroup.teamIds, visibleGroupMatches, teamsById);
+  const currentStageMatches = tournament.matches.filter((match) => match.stage === activeStage && match.stage !== "GROUP");
+  const nextStage = nextTournamentMatch?.stage;
+  const bracketStages: TournamentStage[] = ["ROUND_OF_32", "ROUND_OF_16", "QUARTERFINAL", "SEMIFINAL", "THIRD_PLACE", "FINAL"];
+  const visibleBracketStages = bracketStages.filter((stage) => revealedStages.has(stage) || stage === nextStage);
+
+  function scoreVisible(match: TournamentMatch) {
+    if (match.stage === "GROUP") return (match.matchday ?? 0) <= revealedGroupMatchday;
+    return revealedStages.has(match.stage);
+  }
+
+  return (
+    <section className="tournament-panel sticker" aria-label={labels.button}>
+      <div className="tour-tabs" role="tablist" aria-label={labels.button}>
+        {(["group", "round", "table", "bracket"] as const).map((item) => (
+          <button className={`tour-tab ${tab === item ? "is-active" : ""}`} key={item} onClick={() => setTab(item)} type="button">
+            {labels[item]}
+          </button>
+        ))}
+      </div>
+
+      {tab === "group" && (
+        <div className="tour-section">
+          <div className="tour-section-head"><span className="eyebrow">{labels.group} {tournament.userGroup}</span></div>
+          <div className="tour-team-grid">
+            {userGroup.teamIds.map((teamId) => {
+              const team = teamsById.get(teamId);
+              return <div className={`tour-team ${team?.isUser ? "is-user" : ""}`} key={teamId}><span className="num">{team?.slot}</span><strong>{tournamentTeamName(team, locale, labels.tbd)}</strong></div>;
+            })}
+          </div>
+          <div className="tour-list">
+            {tournament.matches.filter((match) => match.stage === "GROUP" && match.group === tournament.userGroup && match.isUserMatch).map((match) => (
+              <TournamentMatchRow locale={locale} match={match} teamsById={teamsById} scoreVisible={scoreVisible(match)} key={match.id} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "round" && (
+        <div className="tour-section">
+          <div className="tour-section-head"><span className="eyebrow">{activeStage === "GROUP" ? `${labels.round} ${activeMatchday}` : tournamentStageTitle(activeStage, locale)}</span></div>
+          <div className="tour-list">
+            {(activeStage === "GROUP" ? groupRoundMatches : currentStageMatches).map((match) => (
+              <TournamentMatchRow locale={locale} match={match} teamsById={teamsById} scoreVisible={scoreVisible(match)} key={match.id} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "table" && (
+        <div className="tour-section">
+          <div className="tour-section-head"><span className="eyebrow">{labels.table} {tournament.userGroup}</span></div>
+          <div className="tour-table">
+            {liveStandings.map((row, index) => {
+              const team = teamsById.get(row.teamId);
+              return <div className={`tour-table-row ${team?.isUser ? "is-user" : ""}`} key={row.teamId}><span className="num">{index + 1}</span><strong>{tournamentTeamName(team, locale, labels.tbd)}</strong><span className="num">{row.pts} {labels.pts}</span><span className="num">{row.gd >= 0 ? `+${row.gd}` : row.gd} {labels.gd}</span></div>;
+            })}
+          </div>
+        </div>
+      )}
+
+      {tab === "bracket" && (
+        <div className="tour-section">
+          {visibleBracketStages.length === 0 ? <p className="tour-empty">{labels.locked}</p> : visibleBracketStages.map((stage) => (
+            <div className="tour-stage" key={stage}>
+              <span className="eyebrow">{tournamentStageTitle(stage, locale)}</span>
+              <div className="tour-list">
+                {tournament.matches.filter((match) => match.stage === stage).map((match) => (
+                  <TournamentMatchRow locale={locale} match={match} teamsById={teamsById} scoreVisible={scoreVisible(match)} key={match.id} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 function AnimatedRevealView({
   locale,
   result,
@@ -686,6 +937,7 @@ function AnimatedRevealView({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [readyForNext, setReadyForNext] = useState(true);
+  const [tournamentOpen, setTournamentOpen] = useState(false);
   const [mode, setMode] = useState<RevealMode>(readStoredRevealMode);
   const [speed, setSpeed] = useState<RevealSpeed>(readStoredRevealSpeed);
   const [reducedMotion, setReducedMotion] = useState(
@@ -792,9 +1044,18 @@ function AnimatedRevealView({
               ))}
             </select>
           </label>
+          <button
+            className={`chip tournament-toggle ${tournamentOpen ? "is-active" : ""}`}
+            type="button"
+            aria-expanded={tournamentOpen}
+            onClick={() => setTournamentOpen((current) => !current)}
+          >
+            {tournamentLabels[locale].button}
+          </button>
           <SettingsToggle locale={locale} label={t.home.settings} />
         </div>
       </section>
+      {tournamentOpen && <TournamentPanel locale={locale} result={result} visibleCount={visibleCount} />}
       <div className="fixture-list" ref={fixtureListRef}>
         {visible.map((match, index) => (
           <AnimatedFixture
@@ -1119,7 +1380,7 @@ async function loadOpponentSquads(seed: string, selected: Player[]) {
   const random = rng(`${seed}:opponents`);
   const used = new Set(selected.map((player) => `${player.sel}:${player.copa}`));
   const metas: SquadFile[] = [];
-  while (metas.length < 7) {
+  while (metas.length < 47) {
     const meta = squadIndex[Math.floor(random() * squadIndex.length)]!;
     const key = `${meta.sel}:${meta.copa}`;
     if (used.has(key)) continue;

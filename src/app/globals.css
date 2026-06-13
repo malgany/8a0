@@ -1927,6 +1927,7 @@ body:has(.reveal-dream) {
 }
 
 .reveal-dream .reveal-head,
+.reveal-dream .tournament-panel,
 .reveal-dream .fixture-list,
 .reveal-dream .campaign-summary,
 .reveal-dream .reveal-final-actions,
@@ -1941,6 +1942,7 @@ body:has(.reveal-dream) {
   flex-direction: row;
   justify-content: space-between;
   gap: 24px;
+  z-index: 30;
   margin-bottom: 24px;
   padding: 20px 22px;
   border: 1.5px solid rgba(16, 32, 32, 0.16);
@@ -2011,6 +2013,149 @@ body:has(.reveal-dream) {
 
 .reveal-dream .settings-btn {
   padding: 0 18px;
+}
+
+.reveal-dream .tournament-panel {
+  margin: -8px auto 18px;
+  padding: 14px;
+  border: 1.5px solid rgba(16, 32, 32, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--dream-card-shadow);
+}
+
+.tour-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.tour-tab {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1.5px solid rgba(16, 32, 32, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--dream-ink);
+  cursor: pointer;
+  font-family: var(--font-hanken), var(--body), sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tour-tab.is-active {
+  border-color: var(--dream-green);
+  background: #e7f6df;
+  color: var(--dream-green);
+}
+
+.tour-section {
+  display: grid;
+  gap: 11px;
+}
+
+.tour-section-head .eyebrow,
+.tour-stage > .eyebrow {
+  color: var(--dream-green);
+}
+
+.tour-team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tour-team,
+.tour-match,
+.tour-table-row {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid rgba(16, 32, 32, 0.12);
+  border-radius: 10px;
+  background: rgba(250, 255, 248, 0.78);
+}
+
+.tour-team {
+  grid-template-columns: 28px minmax(0, 1fr);
+  padding: 9px 10px;
+}
+
+.tour-team.is-user,
+.tour-match.is-user,
+.tour-table-row.is-user {
+  border-color: rgba(41, 153, 52, 0.28);
+  background: rgba(223, 245, 216, 0.72);
+}
+
+.tour-team strong,
+.tour-match-team,
+.tour-table-row strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dream-ink);
+  font-family: var(--font-hanken), var(--body), sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tour-list,
+.tour-stage {
+  display: grid;
+  gap: 8px;
+}
+
+.tour-match {
+  grid-template-columns: minmax(0, 1fr) minmax(112px, auto) minmax(0, 1fr);
+  padding: 8px 10px;
+}
+
+.tour-match-team:last-child {
+  text-align: right;
+}
+
+.tour-match-score {
+  justify-self: center;
+  color: var(--dream-green);
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.tour-match-score.is-locked {
+  color: var(--dream-muted);
+  font-family: var(--font-hanken), var(--body), sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.tour-table {
+  display: grid;
+  gap: 7px;
+}
+
+.tour-table-row {
+  grid-template-columns: 28px minmax(0, 1fr) 64px 58px;
+  padding: 8px 10px;
+}
+
+.tour-table-row .num,
+.tour-team .num {
+  color: var(--dream-muted);
+  font-size: 12px;
+}
+
+.tour-empty {
+  margin: 0;
+  color: var(--dream-muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .reveal-dream .fixture-list {
@@ -2158,8 +2303,9 @@ body:has(.reveal-dream) {
 
 .reveal-dream .summary-record {
   color: var(--dream-green);
-  font-family: var(--font-hanken), var(--body), sans-serif;
+  font-family: var(--font-archivo), var(--numeral), sans-serif;
   font-weight: 900;
+  letter-spacing: 0;
 }
 
 .reveal-dream .summary-score {
@@ -2185,6 +2331,8 @@ body:has(.reveal-dream) {
 .reveal-dream .summary-stats b {
   color: var(--dream-green);
   font-family: var(--font-archivo), var(--numeral), sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
 }
 
 .reveal-dream .summary-stats small {
@@ -2204,6 +2352,7 @@ body:has(.reveal-dream) {
   font-family: var(--font-oswald), var(--display), sans-serif;
   font-size: 24px;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .reveal-dream .reveal-repeat {
@@ -2241,6 +2390,30 @@ body:has(.reveal-dream) {
     font-size: 13px;
   }
 
+  .reveal-dream .tournament-panel {
+    padding: 12px;
+  }
+
+  .tour-team-grid,
+  .tour-match {
+    grid-template-columns: 1fr;
+  }
+
+  .tour-team {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .tour-match-team,
+  .tour-match-team:last-child,
+  .tour-match-score {
+    justify-self: stretch;
+    text-align: left;
+  }
+
+  .tour-table-row {
+    grid-template-columns: 24px minmax(0, 1fr) 52px 48px;
+  }
+
   .reveal-dream .reveal-score {
     grid-template-columns: 62px minmax(0, 1fr) auto 24px 10px;
   }
@@ -2258,7 +2431,10 @@ body:has(.reveal-dream) {
   }
 
   .reveal-dream .reveal-final-actions .reveal-next {
-    flex: 1 1 180px;
+    flex: 1 1 156px;
+    min-height: 56px;
+    padding: 12px 18px;
+    font-size: 20px;
   }
 }
 

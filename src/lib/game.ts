@@ -14,6 +14,11 @@ import type {
   SquadMeta,
   Style,
   TeamStats,
+  TournamentData,
+  TournamentMatch,
+  TournamentStage,
+  TournamentStanding,
+  TournamentTeam,
 } from "./types";
 import { nationName } from "./nations";
 
@@ -585,12 +590,6 @@ function poisson(random: () => number, expected: number) {
   return count - 1;
 }
 
-function playMatch(random: () => number, attack: number, defense: number, opponentOverall: number) {
-  const gf = poisson(random, lambda(attack, opponentOverall));
-  const ga = poisson(random, lambda(opponentOverall, defense));
-  return { gf, ga, outcome: gf > ga ? "V" : gf < ga ? "D" : "E" } as const;
-}
-
 function weightedGoalScorers(random: () => number, squad: Player[], goals: number) {
   if (goals <= 0) return [];
   const out: string[] = [];
@@ -728,54 +727,91 @@ function penalties(random: () => number, advanced: boolean, meSquad: Player[], t
     : { me: [0], them: [1], score: "0-1", meNames: penaltyTakerNames(meSquad, 1), themNames: penaltyTakerNames(themSquad, 1) };
 }
 
-function groupStandings(
-  random: () => number,
-  userMatches: Array<{ gf: number; ga: number; outcome: "V" | "E" | "D" }>,
-  opponents: Array<{ label: string; overall: number }>,
-) {
-  const me = {
-    me: true,
-    label: "Você",
-    pts: userMatches.reduce((sum, match) => sum + (match.outcome === "V" ? 3 : match.outcome === "E" ? 1 : 0), 0),
-    gd: userMatches.reduce((sum, match) => sum + match.gf - match.ga, 0),
-    gf: userMatches.reduce((sum, match) => sum + match.gf, 0),
-  };
-  const table = opponents.map((opponent, index) => {
-    const match = userMatches[index]!;
-    return {
-      me: false,
-      label: opponent.label,
-      pts: match.outcome === "D" ? 3 : match.outcome === "E" ? 1 : 0,
-      gd: match.ga - match.gf,
-      gf: match.ga,
-    };
-  });
 
-  for (let left = 0; left < opponents.length; left += 1) {
-    for (let right = left + 1; right < opponents.length; right += 1) {
-      const match = playMatch(random, opponents[left]!.overall, opponents[left]!.overall, opponents[right]!.overall);
-      if (match.outcome === "V") table[left]!.pts += 3;
-      else if (match.outcome === "E") {
-        table[left]!.pts += 1;
-        table[right]!.pts += 1;
-      } else table[right]!.pts += 3;
-      table[left]!.gd += match.gf - match.ga;
-      table[left]!.gf += match.gf;
-      table[right]!.gd += match.ga - match.gf;
-      table[right]!.gf += match.ga;
-    }
-  }
-
-  return [me, ...table].sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+interface InternalTournamentTeam extends TournamentTeam {
+  squad: Player[];
+  tieBreak: number;
 }
+
+type TeamReference =
+  | { type: "rank"; group: string; rank: 1 | 2 | 3 }
+  | { type: "winner"; matchId: number }
+  | { type: "loser"; matchId: number };
+
+interface KnockoutDefinition {
+  id: number;
+  stage: TournamentStage;
+  home: TeamReference;
+  away: TeamReference;
+}
+
+function groupRankRef(group: string, rank: 1 | 2 | 3): TeamReference {
+  return { type: "rank", group, rank };
+}
+
+function winnerRef(matchId: number): TeamReference {
+  return { type: "winner", matchId };
+}
+
+function loserRef(matchId: number): TeamReference {
+  return { type: "loser", matchId };
+}
+
+const roundOf32Definitions: KnockoutDefinition[] = [
+  { id: 73, stage: "ROUND_OF_32", home: groupRankRef("A", 2), away: groupRankRef("B", 2) },
+  { id: 74, stage: "ROUND_OF_32", home: groupRankRef("E", 1), away: groupRankRef("E", 3) },
+  { id: 75, stage: "ROUND_OF_32", home: groupRankRef("F", 1), away: groupRankRef("C", 2) },
+  { id: 76, stage: "ROUND_OF_32", home: groupRankRef("C", 1), away: groupRankRef("F", 2) },
+  { id: 77, stage: "ROUND_OF_32", home: groupRankRef("I", 1), away: groupRankRef("I", 3) },
+  { id: 78, stage: "ROUND_OF_32", home: groupRankRef("E", 2), away: groupRankRef("I", 2) },
+  { id: 79, stage: "ROUND_OF_32", home: groupRankRef("A", 1), away: groupRankRef("A", 3) },
+  { id: 80, stage: "ROUND_OF_32", home: groupRankRef("L", 1), away: groupRankRef("L", 3) },
+  { id: 81, stage: "ROUND_OF_32", home: groupRankRef("D", 1), away: groupRankRef("D", 3) },
+  { id: 82, stage: "ROUND_OF_32", home: groupRankRef("G", 1), away: groupRankRef("G", 3) },
+  { id: 83, stage: "ROUND_OF_32", home: groupRankRef("K", 2), away: groupRankRef("L", 2) },
+  { id: 84, stage: "ROUND_OF_32", home: groupRankRef("H", 1), away: groupRankRef("J", 2) },
+  { id: 85, stage: "ROUND_OF_32", home: groupRankRef("B", 1), away: groupRankRef("B", 3) },
+  { id: 86, stage: "ROUND_OF_32", home: groupRankRef("J", 1), away: groupRankRef("H", 2) },
+  { id: 87, stage: "ROUND_OF_32", home: groupRankRef("K", 1), away: groupRankRef("K", 3) },
+  { id: 88, stage: "ROUND_OF_32", home: groupRankRef("D", 2), away: groupRankRef("G", 2) },
+];
+
+const laterKnockoutDefinitions: KnockoutDefinition[] = [
+  { id: 89, stage: "ROUND_OF_16", home: winnerRef(74), away: winnerRef(77) },
+  { id: 90, stage: "ROUND_OF_16", home: winnerRef(73), away: winnerRef(75) },
+  { id: 91, stage: "ROUND_OF_16", home: winnerRef(76), away: winnerRef(78) },
+  { id: 92, stage: "ROUND_OF_16", home: winnerRef(79), away: winnerRef(80) },
+  { id: 93, stage: "ROUND_OF_16", home: winnerRef(83), away: winnerRef(84) },
+  { id: 94, stage: "ROUND_OF_16", home: winnerRef(81), away: winnerRef(82) },
+  { id: 95, stage: "ROUND_OF_16", home: winnerRef(86), away: winnerRef(88) },
+  { id: 96, stage: "ROUND_OF_16", home: winnerRef(85), away: winnerRef(87) },
+  { id: 97, stage: "QUARTERFINAL", home: winnerRef(89), away: winnerRef(90) },
+  { id: 98, stage: "QUARTERFINAL", home: winnerRef(93), away: winnerRef(94) },
+  { id: 99, stage: "QUARTERFINAL", home: winnerRef(91), away: winnerRef(92) },
+  { id: 100, stage: "QUARTERFINAL", home: winnerRef(95), away: winnerRef(96) },
+  { id: 101, stage: "SEMIFINAL", home: winnerRef(97), away: winnerRef(98) },
+  { id: 102, stage: "SEMIFINAL", home: winnerRef(99), away: winnerRef(100) },
+  { id: 103, stage: "THIRD_PLACE", home: loserRef(101), away: loserRef(102) },
+  { id: 104, stage: "FINAL", home: winnerRef(101), away: winnerRef(102) },
+];
 
 function opponentLabel(opponent: Pick<SquadFile, "sel" | "copa"> | SquadMeta | undefined, fallback: string) {
   return opponent ? `${opponent.sel} ${opponent.copa}` : fallback;
 }
 
-function fallbackOpponentMetas(seed: string, selected: Player[], count: number) {
+function shuffle<T>(seed: string, values: T[]) {
+  const random = rng(seed);
+  const out = [...values];
+  for (let index = out.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [out[index], out[swapIndex]] = [out[swapIndex] as T, out[index] as T];
+  }
+  return out;
+}
+
+function fallbackOpponentMetas(seed: string, selected: Player[], count: number, loaded: Array<Pick<SquadFile, "sel" | "copa">> = []) {
   const random = rng(`${seed}:opponents`);
-  const used = new Set(selected.map((player) => `${player.sel}:${player.copa}`));
+  const used = new Set([...selected.map((player) => `${player.sel}:${player.copa}`), ...loaded.map((item) => `${item.sel}:${item.copa}`)]);
   const metas: SquadMeta[] = [];
   while (metas.length < count && used.size < squadIndex.length) {
     const meta = squadIndex[Math.floor(random() * squadIndex.length)]!;
@@ -787,107 +823,459 @@ function fallbackOpponentMetas(seed: string, selected: Player[], count: number) 
   return metas;
 }
 
+function squadStrength(squad: Player[]) {
+  if (squad.length === 0) return 74;
+  const top = [...squad].sort((left, right) => right.force - left.force).slice(0, 11);
+  return Math.round(top.reduce((total, player) => total + player.force, 0) / top.length);
+}
+
+function splitOpponentStats(seed: string, overall: number) {
+  const random = rng(seed);
+  const tilt = Math.round((random() - 0.5) * 8);
+  return {
+    attack: clamp(overall + tilt, 45, 99),
+    defense: clamp(overall - tilt, 45, 99),
+  };
+}
+
+function makeOpponentTeam(
+  seed: string,
+  source: SquadFile | SquadMeta,
+  squad: Player[],
+  group: string,
+  slot: number,
+  index: number,
+): InternalTournamentTeam {
+  const overall = clamp(squad.length ? squadStrength(squad) : 68 + (hashSeed(`${seed}:${source.sel}:${source.copa}`) % 22), 45, 99);
+  const stats = splitOpponentStats(`${seed}:team:${source.sel}:${source.copa}`, overall);
+  const id = `${source.sel}:${source.copa}`;
+  return {
+    id,
+    label: opponentLabel(source, `Rival ${index + 1}`),
+    sel: source.sel,
+    copa: source.copa,
+    group,
+    slot,
+    overall,
+    attack: stats.attack,
+    defense: stats.defense,
+    isUser: false,
+    squad,
+    tieBreak: hashSeed(`${seed}:team-tie:${id}`),
+  };
+}
+
+function toTournamentTeam(team: InternalTournamentTeam): TournamentTeam {
+  return {
+    id: team.id,
+    label: team.label,
+    sel: team.sel,
+    copa: team.copa,
+    group: team.group,
+    slot: team.slot,
+    overall: team.overall,
+    attack: team.attack,
+    defense: team.defense,
+    isUser: team.isUser,
+  };
+}
+
+function buildTournamentTeams(seed: string, draft: Draft, opponentSquads: SquadFile[]) {
+  const selected = draft.filled.filter(Boolean) as Player[];
+  const stats = calculateStats(draft);
+  const loadedUnique: SquadFile[] = [];
+  const used = new Set(selected.map((player) => `${player.sel}:${player.copa}`));
+  for (const squad of opponentSquads) {
+    const key = `${squad.sel}:${squad.copa}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    loadedUnique.push(squad);
+    if (loadedUnique.length >= 47) break;
+  }
+  const fallback = fallbackOpponentMetas(seed, selected, 47 - loadedUnique.length, loadedUnique);
+  const opponentSources = [
+    ...loadedUnique.map((squad) => ({ source: squad, squad: squad.squad })),
+    ...fallback.map((meta) => ({ source: meta, squad: squadFilesByKey.get(`${meta.sel}:${meta.copa}`)?.squad ?? [] })),
+  ].slice(0, 47);
+
+  const slots = tournamentGroups.flatMap((group) => [1, 2, 3, 4].map((slot) => ({ group, slot })));
+  const slotRandom = rng(`${seed}:tournament:user-slot`);
+  const userSlotIndex = Math.floor(slotRandom() * slots.length);
+  const shuffledOpponents = shuffle(`${seed}:tournament:field`, opponentSources);
+  const teams: InternalTournamentTeam[] = [];
+  let opponentIndex = 0;
+
+  slots.forEach((slot, index) => {
+    if (index === userSlotIndex) {
+      teams.push({
+        id: "USER",
+        label: "Seu time",
+        group: slot.group,
+        slot: slot.slot,
+        overall: stats.overall,
+        attack: stats.attack,
+        defense: stats.defense,
+        isUser: true,
+        squad: selected,
+        tieBreak: hashSeed(`${seed}:team-tie:USER`),
+      });
+      return;
+    }
+    const opponent = shuffledOpponents[opponentIndex++];
+    if (!opponent) throw new Error("Not enough opponent squads to build tournament");
+    teams.push(makeOpponentTeam(seed, opponent.source, opponent.squad, slot.group, slot.slot, opponentIndex));
+  });
+
+  return teams;
+}
+
+function playTeamScore(random: () => number, home: InternalTournamentTeam, away: InternalTournamentTeam) {
+  const homeScore = poisson(random, lambda(home.attack, away.defense));
+  const awayScore = poisson(random, lambda(away.attack, home.defense));
+  return { homeScore, awayScore };
+}
+
+function simulateTournamentMatch(
+  seed: string,
+  id: number,
+  stage: TournamentStage,
+  home: InternalTournamentTeam,
+  away: InternalTournamentTeam,
+  knockout: boolean,
+  extra: Partial<Pick<TournamentMatch, "group" | "matchday">> = {},
+): TournamentMatch {
+  const random = rng(`${seed}:match:${id}`);
+  const { homeScore, awayScore } = playTeamScore(random, home, away);
+  let winnerTeamId: string | undefined;
+  let loserTeamId: string | undefined;
+  let penaltyResult: PenaltyResult | undefined;
+
+  if (knockout) {
+    if (homeScore > awayScore) {
+      winnerTeamId = home.id;
+      loserTeamId = away.id;
+    } else if (awayScore > homeScore) {
+      winnerTeamId = away.id;
+      loserTeamId = home.id;
+    } else {
+      const homeStrength = (home.attack + home.defense) / 2;
+      const awayStrength = (away.attack + away.defense) / 2;
+      const homeChance = clamp(0.5 + (homeStrength - awayStrength) * 0.012, 0.1, 0.9);
+      const homeAdvanced = random() < homeChance;
+      winnerTeamId = homeAdvanced ? home.id : away.id;
+      loserTeamId = homeAdvanced ? away.id : home.id;
+      penaltyResult = penalties(rng(`${seed}:pen:${id}`), homeAdvanced, home.squad, away.squad);
+    }
+  }
+
+  return {
+    id,
+    stage,
+    ...extra,
+    homeTeamId: home.id,
+    awayTeamId: away.id,
+    homeScore,
+    awayScore,
+    winnerTeamId,
+    loserTeamId,
+    penalties: penaltyResult,
+    isUserMatch: home.isUser || away.isUser,
+  };
+}
+
+function emptyStanding(teamId: string): Omit<TournamentStanding, "rank"> {
+  return {
+    teamId,
+    played: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    gf: 0,
+    ga: 0,
+    gd: 0,
+    pts: 0,
+    qualified: false,
+  };
+}
+
+function applyStandingResult(row: Omit<TournamentStanding, "rank">, gf: number, ga: number) {
+  row.played += 1;
+  row.gf += gf;
+  row.ga += ga;
+  row.gd = row.gf - row.ga;
+  if (gf > ga) {
+    row.wins += 1;
+    row.pts += 3;
+  } else if (gf === ga) {
+    row.draws += 1;
+    row.pts += 1;
+  } else {
+    row.losses += 1;
+  }
+}
+
+function compareStandings(seed: string, teamsById: Map<string, InternalTournamentTeam>) {
+  return (left: Omit<TournamentStanding, "rank">, right: Omit<TournamentStanding, "rank">) => {
+    if (right.pts !== left.pts) return right.pts - left.pts;
+    if (right.gd !== left.gd) return right.gd - left.gd;
+    if (right.gf !== left.gf) return right.gf - left.gf;
+    const leftTie = teamsById.get(left.teamId)?.tieBreak ?? hashSeed(`${seed}:tie:${left.teamId}`);
+    const rightTie = teamsById.get(right.teamId)?.tieBreak ?? hashSeed(`${seed}:tie:${right.teamId}`);
+    return leftTie - rightTie;
+  };
+}
+
+function calculateGroupStandings(
+  seed: string,
+  teamsById: Map<string, InternalTournamentTeam>,
+  teamIds: string[],
+  matches: TournamentMatch[],
+): TournamentStanding[] {
+  const table = new Map(teamIds.map((teamId) => [teamId, emptyStanding(teamId)]));
+  matches.forEach((match) => {
+    const home = table.get(match.homeTeamId);
+    const away = table.get(match.awayTeamId);
+    if (!home || !away) return;
+    applyStandingResult(home, match.homeScore, match.awayScore);
+    applyStandingResult(away, match.awayScore, match.homeScore);
+  });
+  return [...table.values()]
+    .sort(compareStandings(seed, teamsById))
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
+function getTeamByRank(groups: TournamentData["groups"], teamsById: Map<string, InternalTournamentTeam>, group: string, rank: 1 | 2 | 3) {
+  const standing = groups.find((item) => item.group === group)?.standings[rank - 1];
+  const team = standing ? teamsById.get(standing.teamId) : undefined;
+  if (!team) throw new Error(`Missing team for ${rank}${group}`);
+  return team;
+}
+
+function resolveReference(
+  reference: TeamReference,
+  groups: TournamentData["groups"],
+  teamsById: Map<string, InternalTournamentTeam>,
+  matchesById: Map<number, TournamentMatch>,
+  thirdAssignments: Record<string, string>,
+) {
+  if (reference.type === "winner" || reference.type === "loser") {
+    const match = matchesById.get(reference.matchId);
+    const teamId = reference.type === "winner" ? match?.winnerTeamId : match?.loserTeamId;
+    const team = teamId ? teamsById.get(teamId) : undefined;
+    if (!team) throw new Error(`Missing ${reference.type} for match ${reference.matchId}`);
+    return team;
+  }
+  if (reference.rank === 3) {
+    const assignedGroup = thirdAssignments[`1${reference.group}`];
+    if (!assignedGroup) throw new Error(`Missing third-place assignment for 1${reference.group}`);
+    return getTeamByRank(groups, teamsById, assignedGroup, 3);
+  }
+  return getTeamByRank(groups, teamsById, reference.group, reference.rank);
+}
+
+function buildTournament(seed: string, draft: Draft, opponentSquads: SquadFile[]) {
+  const teams = buildTournamentTeams(seed, draft, opponentSquads);
+  const teamsById = new Map(teams.map((team) => [team.id, team]));
+  const matches: TournamentMatch[] = [];
+  const matchesById = new Map<number, TournamentMatch>();
+  const groupPairings = [
+    { matchday: 1, pairs: [[1, 2], [3, 4]] },
+    { matchday: 2, pairs: [[1, 3], [4, 2]] },
+    { matchday: 3, pairs: [[4, 1], [2, 3]] },
+  ] as const;
+  let groupMatchId = 1;
+
+  for (const group of tournamentGroups) {
+    const groupTeams = teams.filter((team) => team.group === group).sort((left, right) => left.slot - right.slot);
+    for (const round of groupPairings) {
+      for (const [homeSlot, awaySlot] of round.pairs) {
+        const home = groupTeams.find((team) => team.slot === homeSlot)!;
+        const away = groupTeams.find((team) => team.slot === awaySlot)!;
+        const match = simulateTournamentMatch(seed, groupMatchId++, "GROUP", home, away, false, {
+          group,
+          matchday: round.matchday,
+        });
+        matches.push(match);
+        matchesById.set(match.id, match);
+      }
+    }
+  }
+
+  const groups = tournamentGroups.map((group) => {
+    const teamIds = teams.filter((team) => team.group === group).sort((left, right) => left.slot - right.slot).map((team) => team.id);
+    const groupMatches = matches.filter((match) => match.group === group);
+    return {
+      group,
+      teamIds,
+      matchIds: groupMatches.map((match) => match.id),
+      standings: calculateGroupStandings(seed, teamsById, teamIds, groupMatches),
+    };
+  });
+
+  const thirdPlaced = groups
+    .map((group) => group.standings[2]!)
+    .sort(compareStandings(seed, teamsById));
+  const qualifiedThirdIds = new Set(thirdPlaced.slice(0, 8).map((row) => row.teamId));
+  const qualifiedThirdGroups = tournamentGroups.filter((group) => {
+    const third = groups.find((item) => item.group === group)?.standings[2];
+    return third ? qualifiedThirdIds.has(third.teamId) : false;
+  });
+  const thirdAssignmentsList = thirdPlaceRoundOf32Map.get(qualifiedThirdGroups.join(""));
+  if (!thirdAssignmentsList) throw new Error(`Missing third-place table row for ${qualifiedThirdGroups.join("")}`);
+  const thirdPlaceAssignments = Object.fromEntries(thirdPlaceSlots.map((slot, index) => [slot, thirdAssignmentsList[index] as string]));
+
+  groups.forEach((group) => {
+    group.standings = group.standings.map((row) => {
+      const qualified = row.rank <= 2 || qualifiedThirdIds.has(row.teamId);
+      const thirdRank = row.rank === 3 ? thirdPlaced.findIndex((third) => third.teamId === row.teamId) + 1 : undefined;
+      return { ...row, qualified, thirdRank: thirdRank || undefined };
+    });
+  });
+
+  for (const definition of [...roundOf32Definitions, ...laterKnockoutDefinitions]) {
+    const home = resolveReference(definition.home, groups, teamsById, matchesById, thirdPlaceAssignments);
+    const away = resolveReference(definition.away, groups, teamsById, matchesById, thirdPlaceAssignments);
+    const match = simulateTournamentMatch(seed, definition.id, definition.stage, home, away, true);
+    matches.push(match);
+    matchesById.set(match.id, match);
+  }
+
+  const userTeam = teams.find((team) => team.isUser)!;
+  const tournament: TournamentData = {
+    userTeamId: userTeam.id,
+    userGroup: userTeam.group,
+    teams: teams.map(toTournamentTeam),
+    groups,
+    matches,
+    bracket: {
+      roundOf32: roundOf32Definitions.map((match) => match.id),
+      roundOf16: laterKnockoutDefinitions.filter((match) => match.stage === "ROUND_OF_16").map((match) => match.id),
+      quarterfinals: laterKnockoutDefinitions.filter((match) => match.stage === "QUARTERFINAL").map((match) => match.id),
+      semifinals: laterKnockoutDefinitions.filter((match) => match.stage === "SEMIFINAL").map((match) => match.id),
+      thirdPlace: 103,
+      final: 104,
+    },
+    qualifiedThirdGroups,
+    thirdPlaceAssignments,
+  };
+  return { tournament, teamsById };
+}
+
+function stageLabel(stage: TournamentStage) {
+  switch (stage) {
+    case "GROUP":
+      return "GRUPOS";
+    case "ROUND_OF_32":
+      return "16 AVOS";
+    case "ROUND_OF_16":
+      return "OITAVAS";
+    case "QUARTERFINAL":
+      return "QUARTAS";
+    case "SEMIFINAL":
+      return "SEMI";
+    case "THIRD_PLACE":
+      return "3O LUGAR";
+    case "FINAL":
+      return "FINAL";
+  }
+}
+
+function flipPenaltyResult(result: PenaltyResult): PenaltyResult {
+  const [home = "0", away = "0"] = result.score.split("-");
+  return {
+    score: `${away}-${home}`,
+    me: result.them,
+    them: result.me,
+    meNames: result.themNames,
+    themNames: result.meNames,
+    sd: result.sd
+      ? {
+          me: result.sd.them,
+          them: result.sd.me,
+          meNames: result.sd.themNames,
+          themNames: result.sd.meNames,
+        }
+      : undefined,
+  };
+}
+
+function tournamentCampaign(seed: string, draft: Draft, tournament: TournamentData, teamsById: Map<string, InternalTournamentTeam>) {
+  const selected = draft.filled.filter(Boolean) as Player[];
+  const userGroup = tournament.groups.find((group) => group.group === tournament.userGroup);
+  const finalGroupTable = userGroup?.standings.map((row) => {
+    const team = teamsById.get(row.teamId)!;
+    return {
+      me: team.isUser,
+      label: team.label,
+      pts: row.pts,
+      gd: row.gd,
+      gf: row.gf,
+    };
+  });
+  const userQualified = userGroup?.standings.some((row) => row.teamId === tournament.userTeamId && row.qualified) ?? false;
+
+  return tournament.matches
+    .filter((match) => match.isUserMatch)
+    .sort((left, right) => left.id - right.id)
+    .map((match, index): CampaignMatch => {
+      const userIsHome = match.homeTeamId === tournament.userTeamId;
+      const opponent = teamsById.get(userIsHome ? match.awayTeamId : match.homeTeamId)!;
+      const gf = userIsHome ? match.homeScore : match.awayScore;
+      const ga = userIsHome ? match.awayScore : match.homeScore;
+      const userWon = match.winnerTeamId === tournament.userTeamId || (!match.winnerTeamId && gf > ga);
+      const outcome = gf > ga ? "V" : gf < ga ? "D" : "E";
+      const advanced = match.stage === "GROUP" ? (match.matchday === 3 ? userQualified : true) : userWon;
+      const scorerRandom = rng(`${seed}:gols:${match.id}`);
+      const scorers = weightedGoalScorers(scorerRandom, selected, gf);
+      const conceded = weightedGoalScorers(scorerRandom, opponent.squad, ga);
+      const penaltyResult = match.penalties ? (userIsHome ? match.penalties : flipPenaltyResult(match.penalties)) : undefined;
+      return {
+        matchId: match.id,
+        phase: stageLabel(match.stage),
+        opponent: opponent.label,
+        opponentOverall: opponent.overall,
+        gf,
+        ga,
+        outcome,
+        advanced,
+        penalties: penaltyResult,
+        scorers,
+        conceded,
+        minutes: goalMinutes(rng(`${seed}:min:${index}`), scorers, conceded),
+        groupTable: match.stage === "GROUP" && match.matchday === 3 ? finalGroupTable : undefined,
+      };
+    });
+}
+
 export function simulateCampaign(
   seed: string,
   draft: Draft,
   opponentSquads: SquadFile[] = [],
 ): SimResult {
-  const stats = calculateStats(draft);
-  const selected = draft.filled.filter(Boolean) as Player[];
-  const fallbackOpponents = fallbackOpponentMetas(seed, selected, 7);
-  const random = rng(`${seed.toUpperCase()}:copa`);
-  const scorerRandom = rng(`${seed.toUpperCase()}:gols`);
+  const { tournament, teamsById } = buildTournament(seed, draft, opponentSquads);
+  const campaign = tournamentCampaign(seed, draft, tournament, teamsById);
   let wins = 0;
   let draws = 0;
   let losses = 0;
   let gf = 0;
   let ga = 0;
-  let eliminated = false;
-  let opponentIndex = 0;
-  const campaign: CampaignMatch[] = [];
 
-  for (const phase of phases) {
-    if (eliminated) break;
-    if (phase.type === "group") {
-      const groupMatches: Array<{ gf: number; ga: number; outcome: "V" | "E" | "D" }> = [];
-      const groupOpponents: Array<{ label: string; overall: number }> = [];
-      phase.opponents.forEach((opponent) => {
-        const opponentSquad = opponentSquads[opponentIndex];
-        const opponentMeta = opponentSquad ?? fallbackOpponents[opponentIndex];
-        const label = opponentLabel(opponentMeta, opponent.label);
-        groupOpponents.push({ label, overall: opponent.overall });
-        const match = playMatch(random, stats.attack, stats.defense, opponent.overall);
-        groupMatches.push(match);
-        gf += match.gf;
-        ga += match.ga;
-        if (match.outcome === "V") wins += 1;
-        else if (match.outcome === "E") draws += 1;
-        else losses += 1;
-        opponentIndex += 1;
-        const scorers = weightedGoalScorers(scorerRandom, selected, match.gf);
-        const conceded = weightedGoalScorers(scorerRandom, opponentSquad?.squad ?? [], match.ga);
-        campaign.push({
-          phase: phase.key,
-          opponent: label,
-          opponentOverall: opponent.overall,
-          gf: match.gf,
-          ga: match.ga,
-          outcome: match.outcome,
-          advanced: true,
-          scorers,
-          conceded,
-          minutes: goalMinutes(rng(`${seed}:min:${campaign.length}`), scorers, conceded),
-        });
-      });
-      const table = groupStandings(random, groupMatches, groupOpponents);
-      campaign[campaign.length - 1]!.groupTable = table;
-      if (table.findIndex((row) => row.me) >= 2) {
-        campaign[campaign.length - 1]!.advanced = false;
-        eliminated = true;
-      }
-      continue;
-    }
-
-    const opponent = phase.opponent;
-    const opponentSquad = opponentSquads[opponentIndex];
-    const opponentMeta = opponentSquad ?? fallbackOpponents[opponentIndex];
-    const label = opponentLabel(opponentMeta, opponent.label);
-    opponentIndex += 1;
-    const match = playMatch(random, stats.attack, stats.defense, opponent.overall);
+  campaign.forEach((match) => {
     gf += match.gf;
     ga += match.ga;
-    let advanced = false;
-    let penaltyResult;
-    if (match.outcome === "V") {
-      advanced = true;
-    } else if (match.outcome === "E") {
-      const tiebreakStrength = (stats.attack + stats.defense) / 2;
-      const chance = clamp(0.5 + (tiebreakStrength - opponent.overall) * 0.012, 0.1, 0.9);
-      advanced = random() < chance;
-      penaltyResult = penalties(rng(`${seed}:pen:${campaign.length}`), advanced, selected, opponentSquad?.squad ?? []);
+    if (match.phase === "GRUPOS") {
+      if (match.outcome === "V") wins += 1;
+      else if (match.outcome === "E") draws += 1;
+      else losses += 1;
+      return;
     }
-    if (advanced) wins += 1;
+    if (match.advanced) wins += 1;
     else losses += 1;
-    eliminated = !advanced;
-    const scorers = weightedGoalScorers(scorerRandom, selected, match.gf);
-    const conceded = weightedGoalScorers(scorerRandom, opponentSquad?.squad ?? [], match.ga);
-    campaign.push({
-      phase: phase.key,
-      opponent: label,
-      opponentOverall: opponent.overall,
-      gf: match.gf,
-      ga: match.ga,
-      outcome: match.outcome,
-      advanced,
-      penalties: penaltyResult,
-      scorers,
-      conceded,
-      minutes: goalMinutes(rng(`${seed}:min:${campaign.length}`), scorers, conceded),
-    });
-  }
+  });
 
-  const champion = !eliminated && campaign.at(-1)?.phase === "FINAL";
-  const perfect = champion && wins === 7 && draws === 0 && losses === 0;
+  const final = tournament.matches.find((match) => match.id === 104);
+  const champion = final?.winnerTeamId === tournament.userTeamId;
+  const perfect = champion && campaign.length === 8 && losses === 0;
   const badge = perfect && gf - ga >= 18 ? "ESMAGADOR DE RECORDES" : champion && ga === 0 ? "MURALHA" : null;
   return {
     record: `${wins}-${losses}`,
@@ -899,6 +1287,7 @@ export function simulateCampaign(
     gf,
     ga,
     campaign,
+    tournament,
     badge,
   };
 }

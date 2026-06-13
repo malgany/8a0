@@ -199,7 +199,7 @@ export interface SimResult {
   gf: number;
   ga: number;
   campaign: CampaignMatch[];
-  tournament?: TournamentData;
+  tournament: TournamentData;
   badge: "ESMAGADOR DE RECORDES" | "MURALHA" | null;
 }
 
