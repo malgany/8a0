@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { CampaignMatch, Draft, DraftOptions, Locale, Player, SharePayload, SquadFile, TournamentMatch, TournamentStage, TournamentTeam } from "@/lib/types";
 import {
   availablePositions,
@@ -35,6 +36,9 @@ type Phase = "drafting" | "revealing" | "result";
 type DrawPair = { sel: string; copa: number };
 type RevealMode = "manual" | "auto";
 type RevealSpeed = "slow" | "normal" | "fast" | "ultra";
+type BracketMatchStyle = CSSProperties & {
+  "--bracket-join-rows"?: number;
+};
 
 const revealSpeeds: Record<RevealSpeed, number> = {
   slow: 300,
@@ -858,6 +862,14 @@ function tournamentMatchScore(match: TournamentMatch, visible: boolean, labels: 
   return match.penalties ? `${score} (${match.penalties.score})` : score;
 }
 
+function tournamentSideScore(match: TournamentMatch, side: "home" | "away") {
+  const regularScore = side === "home" ? match.homeScore : match.awayScore;
+  if (!match.penalties) return String(regularScore);
+  const [homePenalties, awayPenalties] = match.penalties.score.split("-");
+  const penaltyScore = side === "home" ? homePenalties : awayPenalties;
+  return `${regularScore} (${penaltyScore})`;
+}
+
 function tournamentStageTitle(stage: TournamentStage, locale: Locale) {
   if (stage === "GROUP") return tournamentLabels[locale].group;
   if (stage === "ROUND_OF_32") return locale === "pt" ? "16 avos" : locale === "es" ? "Dieciseisavos" : "Round of 32";
@@ -1031,6 +1043,8 @@ function BracketMatchCard({
   teamsById,
   scoreVisible,
   teamsVisible,
+  userLossVisible,
+  style,
 }: {
   locale: Locale;
   labels: (typeof tournamentLabels)[Locale];
@@ -1038,17 +1052,39 @@ function BracketMatchCard({
   teamsById: Map<string, TournamentTeam>;
   scoreVisible: boolean;
   teamsVisible: boolean;
+  userLossVisible: boolean;
+  style: BracketMatchStyle;
 }) {
   const home = teamsVisible ? teamsById.get(match.homeTeamId) : undefined;
   const away = teamsVisible ? teamsById.get(match.awayTeamId) : undefined;
   const score = scoreVisible ? tournamentMatchScore(match, scoreVisible, labels) : "vs";
+  const homeScore = scoreVisible ? tournamentSideScore(match, "home") : "";
+  const awayScore = scoreVisible ? tournamentSideScore(match, "away") : "";
+  const homeIsUser = home?.isUser ?? false;
+  const awayIsUser = away?.isUser ?? false;
   return (
-    <article className={`tour-bracket-match ${match.isUserMatch ? "is-user" : ""}`}>
-      <div className="tour-bracket-side"><TeamFlag team={home} locale={locale} /><strong>{tournamentTeamName(home, locale, labels.tbd)}</strong></div>
-      <div className={`tour-bracket-score num ${scoreVisible ? "" : "is-locked"}`}>{score}</div>
-      <div className="tour-bracket-side"><TeamFlag team={away} locale={locale} /><strong>{tournamentTeamName(away, locale, labels.tbd)}</strong></div>
+    <article className={`tour-bracket-match ${match.isUserMatch ? "is-user" : ""} ${userLossVisible ? "is-user-lost" : ""}`} style={style}>
+      <div className="tour-bracket-row">
+        <div className={`tour-bracket-side ${homeIsUser ? "is-user-team" : ""} ${userLossVisible && homeIsUser ? "is-lost-team" : ""}`}><TeamFlag team={home} locale={locale} /><strong>{tournamentTeamName(home, locale, labels.tbd)}</strong></div>
+        {scoreVisible && <span className="tour-bracket-team-score num">{homeScore}</span>}
+      </div>
+      {!scoreVisible && <div className="tour-bracket-score num is-locked">{score}</div>}
+      <div className="tour-bracket-row">
+        <div className={`tour-bracket-side ${awayIsUser ? "is-user-team" : ""} ${userLossVisible && awayIsUser ? "is-lost-team" : ""}`}><TeamFlag team={away} locale={locale} /><strong>{tournamentTeamName(away, locale, labels.tbd)}</strong></div>
+        {scoreVisible && <span className="tour-bracket-team-score num">{awayScore}</span>}
+      </div>
     </article>
   );
+}
+
+function bracketMatchStyle(stage: TournamentStage, index: number): BracketMatchStyle {
+  if (stage === "ROUND_OF_32") return { gridRow: `${index * 2 + 1} / span 2`, "--bracket-join-rows": 2 };
+  if (stage === "ROUND_OF_16") return { gridRow: `${index * 4 + 2} / span 2`, "--bracket-join-rows": 4 };
+  if (stage === "QUARTERFINAL") return { gridRow: `${index * 8 + 4} / span 2`, "--bracket-join-rows": 8 };
+  if (stage === "SEMIFINAL") return { gridRow: `${index * 16 + 8} / span 2`, "--bracket-join-rows": 16 };
+  if (stage === "FINAL") return { gridRow: "15 / span 4" };
+  if (stage === "THIRD_PLACE") return { gridRow: "21 / span 4" };
+  return {};
 }
 
 function TournamentModal({
@@ -1078,6 +1114,13 @@ function TournamentModal({
   const stageOrder = new Map(bracketStages.map((stage, index) => [stage, index]));
   const visibleGroupMatches = tournament.matches.filter((match) => match.stage === "GROUP" && (match.matchday ?? 0) <= revealedGroupMatchday);
   const nextKnockoutStage = nextTournamentMatch?.stage !== "GROUP" ? nextTournamentMatch?.stage : undefined;
+  const campaignFinished = visibleCount >= result.campaign.length;
+  const userKnockoutLossIds = new Set(
+    revealedTournamentMatches
+      .filter((match) => match.stage !== "GROUP" && match.loserTeamId === tournament.userTeamId)
+      .map((match) => match.id),
+  );
+  const showFullKnockoutAfterElimination = campaignFinished && userKnockoutLossIds.size > 0;
   const latestRevealedKnockoutIndex = Math.max(
     -1,
     ...[...revealedStages].filter((stage) => stage !== "GROUP").map((stage) => stageOrder.get(stage) ?? -1),
@@ -1085,10 +1128,12 @@ function TournamentModal({
 
   function scoreVisible(match: TournamentMatch) {
     if (match.stage === "GROUP") return (match.matchday ?? 0) <= revealedGroupMatchday;
+    if (showFullKnockoutAfterElimination) return true;
     return revealedStages.has(match.stage);
   }
 
   function bracketTeamsVisible(stage: TournamentStage) {
+    if (showFullKnockoutAfterElimination) return true;
     const index = stageOrder.get(stage) ?? 0;
     if (index === 0) return true;
     if (stage === nextKnockoutStage) return true;
@@ -1132,7 +1177,7 @@ function TournamentModal({
                 <section className={`tour-bracket-stage stage-${stage.toLowerCase().replaceAll("_", "-")}`} key={stage}>
                   <h3>{tournamentStageTitle(stage, locale)}</h3>
                   <div className="tour-bracket-list">
-                    {matches.map((match) => (
+                    {matches.map((match, matchIndex) => (
                       <BracketMatchCard
                         key={match.id}
                         labels={labels}
@@ -1140,7 +1185,9 @@ function TournamentModal({
                         match={match}
                         teamsById={teamsById}
                         scoreVisible={scoreVisible(match)}
+                        style={bracketMatchStyle(stage, matchIndex)}
                         teamsVisible={bracketTeamsVisible(stage)}
+                        userLossVisible={userKnockoutLossIds.has(match.id)}
                       />
                     ))}
                   </div>

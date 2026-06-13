@@ -572,8 +572,8 @@ a {
   display: block;
   color: var(--ink);
   font-weight: 900;
-  margin-top: 13px;
-  padding: 11px 12px;
+  margin-top: 10px;
+  padding: 9px 11px;
   border: 1px dashed var(--accent-2);
   border-radius: 9px;
   background: rgba(200, 162, 75, 0.05);
@@ -1140,46 +1140,47 @@ a {
   color: var(--accent-2);
   font-size: 10px;
   letter-spacing: 0.1em;
-  margin-bottom: 9px;
+  margin-bottom: 6px;
 }
 
 .rv-pens-rounds {
   display: grid;
-  gap: 7px;
+  gap: 3px;
 }
 
 .rv-pen-round {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  min-height: 22px;
+  gap: 8px;
+  min-height: 20px;
 }
 
 .rv-kick-row {
   display: grid;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
   animation: penaltyKickIn 0.22s ease both;
 }
 
 .rv-kick-row--me {
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: 16px minmax(0, 1fr);
 }
 
 .rv-kick-row--them {
-  grid-template-columns: minmax(0, 1fr) 18px;
+  grid-template-columns: minmax(0, 1fr) 16px;
 }
 
 .rv-pen-vs {
   color: var(--muted);
   justify-self: center;
-  width: 34px;
-  font-size: 9px;
+  width: 20px;
+  font-size: 8px;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  opacity: 0.72;
+  letter-spacing: 0;
+  line-height: 1;
+  opacity: 0.64;
   text-align: center;
   text-transform: uppercase;
 }
@@ -1189,12 +1190,12 @@ a {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid var(--line);
   border-radius: 50%;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
   line-height: 1;
 }
@@ -1217,7 +1218,7 @@ a {
   text-overflow: ellipsis;
   color: var(--ink);
   font-family: var(--display);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1228,16 +1229,16 @@ a {
 }
 
 .rv-sd {
-  margin-top: 11px;
-  padding-top: 9px;
+  margin-top: 8px;
+  padding-top: 7px;
   border-top: 1px dashed rgba(200, 162, 75, 0.5);
 }
 
 .rv-pens-out {
-  margin-top: 10px;
+  margin-top: 7px;
   color: var(--accent-2);
   font-family: var(--display);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -1738,6 +1739,13 @@ a {
   color: var(--surface);
 }
 
+.settings-choice--flag {
+  min-width: 42px;
+  padding-inline: 9px;
+  font-size: 18px;
+  line-height: 1;
+}
+
 .theme-terrace .settings-choice {
   border-color: var(--line);
   background: var(--surface);
@@ -1792,11 +1800,14 @@ a {
   }
 
   .draft-header-right {
+    display: flex;
+    justify-content: flex-end;
     width: 100%;
     margin-left: 0;
   }
 
   .play-controls {
+    align-items: flex-end;
     width: 100%;
   }
 
@@ -2397,47 +2408,28 @@ body:has(.reveal-dream) {
 }
 
 .tour-bracket-grid {
+  --bracket-row: 38px;
   display: grid;
   grid-template-columns: repeat(6, minmax(176px, 1fr));
-  align-items: stretch;
+  align-items: start;
   gap: 18px;
   overflow: auto;
 }
 
 .tour-bracket-list {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  min-height: 580px;
-  gap: 10px;
-}
-
-.stage-round-of-16 .tour-bracket-list {
-  padding-top: 35px;
-  gap: 34px;
-}
-
-.stage-quarterfinal .tour-bracket-list {
-  padding-top: 92px;
-  gap: 104px;
-}
-
-.stage-semifinal .tour-bracket-list {
-  padding-top: 206px;
-  gap: 242px;
-}
-
-.stage-final .tour-bracket-list,
-.stage-third-place .tour-bracket-list {
-  justify-content: center;
+  display: grid;
+  grid-template-rows: repeat(32, var(--bracket-row));
+  min-height: calc(var(--bracket-row) * 32);
 }
 
 .tour-bracket-match {
   position: relative;
-  display: grid;
-  grid-template-rows: 24px 20px 24px;
-  gap: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  gap: 5px;
   min-height: 74px;
   padding: 8px 10px;
   border: 1.5px solid rgba(16, 32, 32, 0.14);
@@ -2462,25 +2454,27 @@ body:has(.reveal-dream) {
   position: absolute;
   top: 50%;
   right: -18px;
-  height: calc(100% + 10px);
+  height: calc(var(--bracket-row) * var(--bracket-join-rows, 2));
   border-right: 2px solid rgba(16, 32, 32, 0.22);
-}
-
-.stage-round-of-16 .tour-bracket-match:nth-child(odd)::before {
-  height: calc(100% + 34px);
-}
-
-.stage-quarterfinal .tour-bracket-match:nth-child(odd)::before {
-  height: calc(100% + 104px);
-}
-
-.stage-semifinal .tour-bracket-match:nth-child(odd)::before {
-  height: calc(100% + 242px);
 }
 
 .tour-bracket-match.is-user {
   border-color: rgba(22, 131, 41, 0.44);
   box-shadow: inset 4px 0 0 var(--dream-green);
+}
+
+.tour-bracket-match.is-user-lost {
+  border-color: rgba(244, 59, 47, 0.46);
+  background: rgba(255, 244, 238, 0.95);
+  box-shadow: inset 4px 0 0 var(--dream-red);
+}
+
+.tour-bracket-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
 }
 
 .tour-bracket-side {
@@ -2497,11 +2491,25 @@ body:has(.reveal-dream) {
   white-space: nowrap;
 }
 
+.tour-bracket-side.is-lost-team strong {
+  color: var(--dream-red);
+}
+
 .tour-bracket-score {
   color: var(--dream-green);
   font-size: 14px;
   font-weight: 900;
   line-height: 1;
+  text-align: center;
+}
+
+.tour-bracket-team-score {
+  color: var(--dream-green);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .tour-bracket-score.is-locked {
@@ -2725,6 +2733,7 @@ body:has(.reveal-dream) {
 }
 
 .reveal-table {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3578,7 +3587,7 @@ body:has(.reveal-dream) {
 
   .home-dream .home-nav {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: flex-end;
     flex-wrap: wrap;
   }
 
@@ -4751,12 +4760,18 @@ body:has(.result-dream) {
     width: 100%;
   }
 
+  .play-dream .draft-header-right {
+    display: flex;
+    justify-content: flex-end;
+  }
+
   .play-dream .play-controls {
-    align-items: flex-start;
+    align-items: flex-end;
     flex-direction: column;
   }
 
   .play-dream .play-controls > .eyebrow {
+    text-align: right;
     white-space: normal;
   }
 
@@ -4803,6 +4818,7 @@ body:has(.result-dream) {
   .play-dream .play-toggles {
     width: 100%;
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .play-dream .profile-link,

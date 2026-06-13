@@ -6,6 +6,7 @@ import type { Locale } from "@/lib/types";
 import { locales, normalizeLocale } from "@/lib/i18n";
 
 const langLabels: Record<Locale, string> = { pt: "PT", en: "EN", es: "ES" };
+const langFlags: Record<Locale, string> = { pt: "\ud83c\udde7\ud83c\uddf7", en: "\ud83c\uddfa\ud83c\uddf8", es: "\ud83c\uddea\ud83c\uddf8" };
 const THEME_STORAGE_KEY = "s80-theme";
 const LEGACY_THEME_STORAGE_KEY = "s70-theme";
 const STREAMER_STORAGE_KEY = "s80-streamer-mode";
@@ -180,15 +181,17 @@ export function SettingsToggle({ locale, label }: { locale: Locale; label: strin
             <div className="settings-row settings-row--lang" role="group" aria-label={copy.language}>
               {locales.map((item) => (
                 <button
-                  className={`settings-choice ${item === locale ? "is-active" : ""}`}
+                  aria-label={`${copy.selectLanguage}: ${langLabels[item]}`}
+                  className={`settings-choice settings-choice--flag ${item === locale ? "is-active" : ""}`}
                   key={item}
+                  title={langLabels[item]}
                   type="button"
                   onClick={() => {
                     setOpen(false);
                     router.push(pathForLocale(pathname, item));
                   }}
                 >
-                  {langLabels[item]}
+                  <span aria-hidden="true">{langFlags[item]}</span>
                 </button>
               ))}
             </div>
