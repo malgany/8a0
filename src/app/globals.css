@@ -4873,3 +4873,414 @@ body:has(.result-dream) {
     grid-template-columns: auto minmax(0, 1fr);
   }
 }
+
+/* Dark terrace polish for the dream skin. Kept scoped so the light theme remains unchanged. */
+.theme-terrace:has(.home-dream),
+.theme-terrace:has(.play-dream),
+.theme-terrace:has(.reveal-dream),
+.theme-terrace:has(.result-dream),
+html.theme-terrace:has(.home-dream) body,
+html.theme-terrace:has(.play-dream) body,
+html.theme-terrace:has(.reveal-dream) body,
+html.theme-terrace:has(.result-dream) body {
+  background: #07130f;
+}
+
+.theme-terrace .home-dream,
+.theme-terrace .play-dream,
+.theme-terrace .reveal-dream,
+.theme-terrace .result-dream {
+  --dream-ink: #f4f8ef;
+  --dream-muted: #b9c9b8;
+  --dream-green: #32d05a;
+  --dream-green-2: #44e06a;
+  --dream-green-3: #173722;
+  --dream-blue: #2d7df0;
+  --dream-blue-shadow: #1454b8;
+  --dream-blue-glow: rgba(45, 125, 240, 0.24);
+  --dream-red: #ff6554;
+  --dream-yellow: #f5c84a;
+  --dream-border: rgba(215, 235, 214, 0.26);
+  --dream-card-shadow: 0 2px 0 rgba(0, 0, 0, 0.42), 0 18px 44px rgba(0, 0, 0, 0.34);
+  --dream-dark-bg: #07130f;
+  --dream-dark-bg-2: #0a1b14;
+  --dream-dark-surface: rgba(16, 36, 27, 0.92);
+  --dream-dark-surface-2: rgba(22, 46, 35, 0.94);
+  --dream-dark-surface-3: rgba(29, 58, 44, 0.94);
+  --dream-dark-line: rgba(215, 235, 214, 0.18);
+  --dream-dark-line-strong: rgba(215, 235, 214, 0.34);
+  background:
+    linear-gradient(180deg, rgba(7, 19, 15, 0.96), rgba(10, 27, 20, 0.96) 58%, rgba(9, 38, 22, 0.96)),
+    radial-gradient(1200px 520px at 50% 100%, rgba(50, 208, 90, 0.16), transparent 72%),
+    #07130f;
+  color: var(--dream-ink);
+}
+
+.theme-terrace .home-dream + .site-footer,
+.theme-terrace .play-dream + .site-footer,
+.theme-terrace .reveal-dream + .site-footer,
+.theme-terrace .result-dream + .site-footer {
+  border-top-color: rgba(215, 235, 214, 0.18);
+  background: #07130f;
+  color: #b9c9b8;
+}
+
+.theme-terrace .home-dream::after,
+.theme-terrace .play-dream::after,
+.theme-terrace .reveal-dream::after,
+.theme-terrace .result-dream::after {
+  opacity: 0.72;
+}
+
+.theme-terrace .home-dream .rule-ink,
+.theme-terrace .privacy-dream .rule-ink,
+.theme-terrace .reveal-dream .reveal-head {
+  border-color: var(--dream-dark-line-strong);
+}
+
+.theme-terrace .home-dream .home-brand,
+.theme-terrace .home-dream .home-headline,
+.theme-terrace .play-dream .logo,
+.theme-terrace .play-dream .logo .mark80,
+.theme-terrace .play-dream .logo .mark80 .mark-8,
+.theme-terrace .play-dream .logo .mark80 .mark-0,
+.theme-terrace .play-dream .logo .lk-horz-name,
+.theme-terrace .reveal-dream .reveal-head h1,
+.theme-terrace .result-dream .skin-dream {
+  color: var(--dream-ink);
+}
+
+.theme-terrace .home-dream .home-sub,
+.theme-terrace .home-dream .step-d,
+.theme-terrace .privacy-lead,
+.theme-terrace .privacy-section p,
+.theme-terrace .play-dream .play-controls > .eyebrow,
+.theme-terrace .play-dream .pitch-hint {
+  color: var(--dream-muted);
+}
+
+.theme-terrace .home-dream .profile-link,
+.theme-terrace .home-dream .settings-btn,
+.theme-terrace .play-dream .profile-link,
+.theme-terrace .play-dream .settings-btn,
+.theme-terrace .reveal-dream .settings-btn,
+.theme-terrace .reveal-dream .reveal-controls .chip,
+.theme-terrace .reveal-dream .reveal-speed,
+.theme-terrace .result-dream .card-actions .btn-secondary {
+  border-color: var(--dream-dark-line-strong);
+  background: var(--dream-dark-surface-2);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.42);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .home-dream .profile-link:hover,
+.theme-terrace .home-dream .settings-btn:hover,
+.theme-terrace .play-dream .profile-link:hover,
+.theme-terrace .play-dream .settings-btn:hover,
+.theme-terrace .reveal-dream .settings-btn:hover,
+.theme-terrace .reveal-dream .reveal-controls .chip:hover,
+.theme-terrace .reveal-dream .reveal-speed:hover,
+.theme-terrace .result-dream .card-actions .btn-secondary:hover {
+  border-color: rgba(50, 208, 90, 0.58);
+  background: var(--dream-dark-surface-3);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .home-dream .settings-menu,
+.theme-terrace .play-dream .settings-menu,
+.theme-terrace .reveal-dream .settings-menu {
+  border-color: var(--dream-dark-line-strong);
+  background: rgba(13, 30, 22, 0.98);
+  box-shadow: var(--dream-card-shadow);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .home-dream .settings-head,
+.theme-terrace .play-dream .settings-head,
+.theme-terrace .reveal-dream .settings-head,
+.theme-terrace .home-dream .settings-section,
+.theme-terrace .play-dream .settings-section,
+.theme-terrace .reveal-dream .settings-section {
+  border-color: var(--dream-dark-line);
+}
+
+.theme-terrace .home-dream .settings-choice,
+.theme-terrace .play-dream .settings-choice,
+.theme-terrace .reveal-dream .settings-choice,
+.theme-terrace .play-dream .chip {
+  border-color: var(--dream-dark-line-strong);
+  background: rgba(8, 20, 15, 0.9);
+  box-shadow: none;
+  color: var(--dream-ink);
+}
+
+.theme-terrace .home-dream .settings-choice:hover,
+.theme-terrace .play-dream .settings-choice:hover,
+.theme-terrace .reveal-dream .settings-choice:hover,
+.theme-terrace .play-dream .chip:hover {
+  border-color: rgba(50, 208, 90, 0.58);
+  background: var(--dream-green-3);
+}
+
+.theme-terrace .home-dream .settings-choice.is-active,
+.theme-terrace .play-dream .settings-choice.is-active,
+.theme-terrace .reveal-dream .settings-choice.is-active,
+.theme-terrace .play-dream .chip.is-active,
+.theme-terrace .reveal-dream .reveal-controls .chip.is-active {
+  border-color: rgba(50, 208, 90, 0.78);
+  background: #168329;
+  color: #fff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.42);
+}
+
+.theme-terrace .home-score-card,
+.theme-terrace .home-dream .home-preview,
+.theme-terrace .home-dream .home-steps.sticker,
+.theme-terrace .privacy-card,
+.theme-terrace .play-dream .col-roll,
+.theme-terrace .play-dream .col-pitch,
+.theme-terrace .play-dream .col-box,
+.theme-terrace .play-dream .play-setup.sticker,
+.theme-terrace .play-dream .roll-result.sticker,
+.theme-terrace .reveal-dream .fixture-card,
+.theme-terrace .reveal-dream .campaign-summary,
+.theme-terrace .result-dream .skin-dream {
+  border-color: var(--dream-dark-line);
+  background: var(--dream-dark-surface);
+  box-shadow: var(--dream-card-shadow);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .privacy-card,
+.theme-terrace .reveal-dream .campaign-summary,
+.theme-terrace .result-dream .skin-dream {
+  background:
+    linear-gradient(135deg, transparent 0 calc(100% - 46px), rgba(245, 200, 74, 0.86) calc(100% - 45px) calc(100% - 18px), transparent calc(100% - 17px)),
+    linear-gradient(180deg, rgba(16, 36, 27, 0.97), rgba(11, 28, 20, 0.97));
+}
+
+.theme-terrace .home-score-card {
+  background:
+    linear-gradient(180deg, rgba(21, 45, 34, 0.98), rgba(13, 30, 22, 0.98)),
+    var(--dream-dark-surface);
+}
+
+.theme-terrace .home-score-card::before {
+  background-image: radial-gradient(rgba(244, 248, 239, 0.1) 1px, transparent 1.3px);
+}
+
+.theme-terrace .score-number,
+.theme-terrace .skin-dream .cc-record,
+.theme-terrace .skin-dream .cc-record-number {
+  color: var(--dream-ink);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+
+.theme-terrace .home-dream .home-pitch,
+.theme-terrace .play-dream .pitch-wrap {
+  border-color: rgba(244, 248, 239, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(50, 208, 90, 0.28);
+}
+
+.theme-terrace .home-dream .hp-c,
+.theme-terrace .play-dream .disc.empty.slot-pickable .disc-circle,
+.theme-terrace .play-dream .slot-filled .disc-circle {
+  border-color: rgba(7, 19, 15, 0.9);
+  background: #f4f8ef;
+  color: #07130f;
+}
+
+.theme-terrace .lineup-toolbar,
+.theme-terrace .chemistry-pill,
+.theme-terrace .play-dream .roll-idle,
+.theme-terrace .play-dream .player-list,
+.theme-terrace .skin-dream .cc-stats,
+.theme-terrace .skin-dream .cc-chip,
+.theme-terrace .result-dream .card-actions .btn-secondary {
+  border-color: var(--dream-dark-line);
+  background: rgba(8, 20, 15, 0.72);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .lineup-tool + .lineup-tool,
+.theme-terrace .play-dream .box-head,
+.theme-terrace .play-dream .boxscore td,
+.theme-terrace .skin-dream .cc-head,
+.theme-terrace .skin-dream .cc-stat,
+.theme-terrace .skin-dream .cc-foot {
+  border-color: var(--dream-dark-line);
+}
+
+.theme-terrace .play-dream .player-card {
+  border-bottom-color: var(--dream-dark-line);
+  background: rgba(8, 20, 15, 0.88);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .play-dream .pc-name,
+.theme-terrace .play-dream .pc-force,
+.theme-terrace .play-dream .box-rating b,
+.theme-terrace .play-dream .boxscore,
+.theme-terrace .skin-dream .cc-stat span,
+.theme-terrace .skin-dream .cc-chip-name,
+.theme-terrace .skin-dream .cc-champ,
+.theme-terrace .skin-dream .cc-brand .mark80,
+.theme-terrace .skin-dream .cc-brand .mark80 .mark-8,
+.theme-terrace .skin-dream .cc-brand .mark80 .mark-0,
+.theme-terrace .skin-dream .cc-brand .lk-horz-name {
+  color: var(--dream-ink);
+}
+
+.theme-terrace .play-dream .pc-num,
+.theme-terrace .play-dream .pc-pos,
+.theme-terrace .play-dream .boxscore .pos,
+.theme-terrace .skin-dream .cc-chip-num,
+.theme-terrace .skin-dream .cc-chip-org,
+.theme-terrace .skin-dream .cc-stat label,
+.theme-terrace .skin-dream .cc-seed,
+.theme-terrace .skin-dream .cc-url {
+  color: var(--dream-muted);
+}
+
+.theme-terrace .play-dream .player-card:hover,
+.theme-terrace .play-dream .player-card.is-active {
+  background: #168329;
+  color: #fff;
+}
+
+.theme-terrace .play-dream .player-card:hover .pc-name,
+.theme-terrace .play-dream .player-card:hover .pc-num,
+.theme-terrace .play-dream .player-card:hover .pc-force,
+.theme-terrace .play-dream .player-card:hover .pc-pos,
+.theme-terrace .play-dream .player-card.is-active .pc-name,
+.theme-terrace .play-dream .player-card.is-active .pc-num,
+.theme-terrace .play-dream .player-card.is-active .pc-force,
+.theme-terrace .play-dream .player-card.is-active .pc-pos {
+  color: #fff;
+}
+
+.theme-terrace .play-dream .player-card.is-disabled,
+.theme-terrace .play-dream .player-card:disabled {
+  background: rgba(8, 20, 15, 0.42);
+  color: rgba(185, 201, 184, 0.58);
+  opacity: 0.62;
+}
+
+.theme-terrace .play-dream .reroll-btn {
+  border-color: var(--dream-dark-line-strong);
+  background: rgba(8, 20, 15, 0.86);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .play-dream .reroll-btn:hover {
+  border-color: rgba(50, 208, 90, 0.58);
+  background: var(--dream-green-3);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .reveal-dream .reveal-speed select {
+  color: var(--dream-ink);
+}
+
+.theme-terrace .reveal-dream .reveal-score:hover:not(.is-expanded) {
+  background: rgba(50, 208, 90, 0.1);
+}
+
+.theme-terrace .reveal-dream .reveal-repeat,
+.theme-terrace .reveal-dream .reveal-table {
+  border-color: var(--dream-dark-line-strong);
+  background: rgba(8, 20, 15, 0.86);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.42);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .reveal-dream .reveal-repeat:hover,
+.theme-terrace .reveal-dream .reveal-table:hover {
+  border-color: rgba(50, 208, 90, 0.58);
+  background: var(--dream-green-3);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .reveal-dream .fixture-clock b.num,
+.theme-terrace .reveal-dream .rv-table-wrap,
+.theme-terrace .reveal-dream .fixture-pen {
+  border-color: var(--dream-dark-line);
+  background: rgba(8, 20, 15, 0.72);
+}
+
+.theme-terrace .reveal-dream .rv-table-h {
+  background: rgba(50, 208, 90, 0.14);
+  color: var(--dream-green);
+}
+
+.theme-terrace .reveal-dream .rv-trow,
+.theme-terrace .reveal-dream .rv-tl {
+  border-color: var(--dream-dark-line);
+}
+
+.theme-terrace .reveal-dream .rv-trow.is-me {
+  background: rgba(50, 208, 90, 0.12);
+}
+
+.theme-terrace .reveal-dream .tour-modal-backdrop {
+  background: rgba(2, 8, 6, 0.68);
+}
+
+.theme-terrace .reveal-dream .tour-modal,
+.theme-terrace .reveal-dream .tour-standings,
+.theme-terrace .reveal-dream .tour-bracket-match {
+  border-color: var(--dream-dark-line);
+  background: rgba(13, 30, 22, 0.98);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .reveal-dream .tour-modal-head,
+.theme-terrace .reveal-dream .tour-modal .tour-tabs,
+.theme-terrace .reveal-dream .tour-standings-row {
+  border-color: var(--dream-dark-line);
+}
+
+.theme-terrace .reveal-dream .tour-modal-close {
+  border-color: var(--dream-dark-line-strong);
+  background: rgba(8, 20, 15, 0.9);
+  color: var(--dream-ink);
+}
+
+.theme-terrace .reveal-dream .tour-modal-close:hover {
+  background: var(--dream-green-3);
+}
+
+.theme-terrace .reveal-dream .tour-standings-row.is-head {
+  color: var(--dream-muted);
+}
+
+.theme-terrace .reveal-dream .tour-standings-row.is-user {
+  background: rgba(50, 208, 90, 0.14);
+}
+
+.theme-terrace .reveal-dream .tour-bracket-match.is-user-lost {
+  background: rgba(92, 31, 25, 0.72);
+}
+
+.theme-terrace .reveal-dream .tour-form-dot {
+  border-color: var(--dream-dark-line-strong);
+  background: rgba(8, 20, 15, 0.9);
+}
+
+.theme-terrace .skin-dream .cc-chip.is-legend {
+  border-color: rgba(245, 200, 74, 0.62);
+  background: linear-gradient(90deg, rgba(40, 44, 22, 0.92), rgba(32, 41, 23, 0.92));
+}
+
+.theme-terrace .skin-dream .cc-badge {
+  background: linear-gradient(90deg, rgba(50, 208, 90, 0.16), rgba(245, 200, 74, 0.16));
+  color: var(--dream-green);
+}
+
+.theme-terrace .skin-dream .cc-inv {
+  color: #f5c84a !important;
+}
+
+.theme-terrace .skin-dream .cc-almanaque {
+  background: rgba(8, 20, 15, 0.88);
+}
