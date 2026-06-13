@@ -55,8 +55,14 @@ describe("8a0 dataset", () => {
     const players = squadIndex.flatMap((meta) => readSquad(meta.slug).squad);
     expect(players).toHaveLength(6514);
     expect(players.every((player) => player.playerId && player.name && player.positions.length > 0)).toBe(true);
+    expect(players.every((player) => player.number !== null)).toBe(true);
     expect(players.every((player) => player.number !== 0)).toBe(true);
-    expect(players.filter((player) => player.copa < 1954).every((player) => player.number === null)).toBe(true);
+    for (const meta of squadIndex.filter((item) => earlyWorldCupYears.has(item.copa))) {
+      const squad = readSquad(meta.slug).squad;
+      const numbers = squad.map((player) => player.number).sort((left, right) => Number(left) - Number(right));
+      expect(numbers).toEqual(Array.from({ length: squad.length }, (_, index) => index + 1));
+      expect(squad.find((player) => player.number === 1)?.positions).toContain("GOL");
+    }
     for (const group of earlyHighlightedRanges) {
       const squad = readSquad(findSquadMeta(group.sel, group.copa)!.slug).squad;
       const highlighted = squad.filter((player) => group.ids.includes(player.playerId));

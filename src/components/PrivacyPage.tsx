@@ -32,11 +32,11 @@ const privacyCopy = {
     back: "Back",
     updated: "Last updated: June 12, 2026.",
     lead:
-      "8a0 is designed to be played without an account. The experience stores only what is needed to keep preferences and let you share a generated team or result.",
+      "8a0 is designed to be played without an account. The experience stores only what is needed to keep your preferences and let you share a generated team or result.",
     sections: [
       [
         "Local data",
-        "Theme, language, and game preferences are stored in your own browser. This data does not identify you and can be removed by clearing this site's browser data.",
+        "Theme, language, and game preferences are stored in your own browser. This data does not identify you and can be removed by clearing this site's data in the browser.",
       ],
       [
         "Shared teams and links",
@@ -56,11 +56,11 @@ const privacyCopy = {
     back: "Volver",
     updated: "Actualizado el 12 de junio de 2026.",
     lead:
-      "8a0 está pensado para jugar sin registro. La experiencia guarda solo lo necesario para mantener preferencias y permitirte compartir un equipo o resultado generado.",
+      "8a0 está pensado para jugar sin registro. La experiencia guarda solo lo necesario para mantener tus preferencias y permitirte compartir un equipo o resultado generado.",
     sections: [
       [
         "Datos locales",
-        "Tema, idioma y preferencias de juego quedan guardados en tu propio navegador. Estos datos no te identifican y se pueden borrar limpiando los datos del sitio.",
+        "Tema, idioma y preferencias de juego quedan guardados en tu propio navegador. Estos datos no te identifican y se pueden borrar limpiando los datos del sitio en el navegador.",
       ],
       [
         "Equipos y enlaces compartidos",
@@ -72,7 +72,7 @@ const privacyCopy = {
       ],
       [
         "Tus controles",
-        "Puedes jugar sin informar datos personales, cambiar idioma y tema cuando quieras, y descartar preferencias locales limpiando el almacenamiento del sitio.",
+        "Puedes jugar sin proporcionar datos personales, cambiar idioma y tema cuando quieras, y descartar preferencias locales limpiando el almacenamiento del sitio.",
       ],
     ],
   },

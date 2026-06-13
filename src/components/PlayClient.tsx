@@ -52,7 +52,7 @@ const LEGACY_SPEED_STORAGE_KEY = "7a0-speed";
 const penaltyLiveLabels: Record<Locale, string> = {
   pt: "Cobrando",
   en: "Taking",
-  es: "Patea",
+  es: "Ejecuta",
 };
 const penaltyStageLabels: Record<Locale, { bestOfFive: string; suddenDeath: string; advanced: string; eliminated: string }> = {
   pt: {
@@ -119,6 +119,10 @@ const tournamentLabels: Record<
   Locale,
   {
     button: string;
+    viewTable: string;
+    close: string;
+    groupsTab: string;
+    bracketTab: string;
     group: string;
     round: string;
     table: string;
@@ -130,24 +134,46 @@ const tournamentLabels: Record<
     for: string;
     tbd: string;
     third: string;
+    team: string;
+    played: string;
+    wins: string;
+    draws: string;
+    losses: string;
+    ga: string;
+    form: string;
   }
 > = {
   pt: {
     button: "Copa",
+    viewTable: "Ver tabela",
+    close: "Fechar",
+    groupsTab: "Fase de grupos",
+    bracketTab: "Eliminat\u00f3rias",
     group: "Grupo",
     round: "Rodada",
     table: "Tabela",
     bracket: "Chave",
-    schedule: "Calendario",
+    schedule: "Calend\u00e1rio",
     locked: "Placar liberado depois do seu jogo",
     pts: "PTS",
     gd: "SG",
-    for: "GP",
+    for: "GM",
     tbd: "A definir",
-    third: "3o",
+    third: "3\u00ba",
+    team: "Equipe",
+    played: "PJ",
+    wins: "VIT",
+    draws: "E",
+    losses: "DER",
+    ga: "GC",
+    form: "\u00daltimas",
   },
   en: {
     button: "Cup",
+    viewTable: "View table",
+    close: "Close",
+    groupsTab: "Group stage",
+    bracketTab: "Knockout",
     group: "Group",
     round: "Round",
     table: "Table",
@@ -159,20 +185,74 @@ const tournamentLabels: Record<
     for: "GF",
     tbd: "TBD",
     third: "3rd",
+    team: "Team",
+    played: "P",
+    wins: "W",
+    draws: "D",
+    losses: "L",
+    ga: "GA",
+    form: "Last 5",
   },
   es: {
     button: "Copa",
+    viewTable: "Ver tabla",
+    close: "Cerrar",
+    groupsTab: "Fase de grupos",
+    bracketTab: "Eliminatorias",
     group: "Grupo",
     round: "Jornada",
     table: "Tabla",
     bracket: "Llave",
     schedule: "Calendario",
-    locked: "Marcador liberado despues de tu partido",
+    locked: "Marcador liberado despu\u00e9s de tu partido",
     pts: "PTS",
     gd: "DG",
     for: "GF",
     tbd: "Por definir",
-    third: "3o",
+    third: "3.\u00ba",
+    team: "Equipo",
+    played: "PJ",
+    wins: "VIC",
+    draws: "E",
+    losses: "DER",
+    ga: "GC",
+    form: "\u00daltimas",
+  },
+};
+
+const fixtureSummaryLabels: Record<Locale, { goals: string; conceded: string }> = {
+  pt: { goals: "GOLS", conceded: "SOFREU" },
+  en: { goals: "GOALS", conceded: "CONCEDED" },
+  es: { goals: "GOLES", conceded: "RECIBIÓ" },
+};
+
+const campaignPhaseLabels: Record<Locale, Record<string, string>> = {
+  pt: {
+    GRUPOS: "GRUPOS",
+    "16 AVOS": "16 AVOS",
+    OITAVAS: "OITAVAS",
+    QUARTAS: "QUARTAS",
+    SEMI: "SEMI",
+    "3O LUGAR": "3º LUGAR",
+    FINAL: "FINAL",
+  },
+  en: {
+    GRUPOS: "GROUP",
+    "16 AVOS": "ROUND OF 32",
+    OITAVAS: "ROUND OF 16",
+    QUARTAS: "QUARTERFINALS",
+    SEMI: "SEMIFINAL",
+    "3O LUGAR": "THIRD PLACE",
+    FINAL: "FINAL",
+  },
+  es: {
+    GRUPOS: "GRUPOS",
+    "16 AVOS": "DIECISEISAVOS",
+    OITAVAS: "OCTAVOS",
+    QUARTAS: "CUARTOS",
+    SEMI: "SEMIFINAL",
+    "3O LUGAR": "TERCER PUESTO",
+    FINAL: "FINAL",
   },
 };
 
@@ -194,6 +274,15 @@ function FlagImage({ code, label }: { code: string; label: string }) {
     return <span aria-label={label}>{nationFlag(code) || code}</span>;
   }
   return <span className="flag-img" aria-hidden="true" style={{ backgroundImage: `url(${url})` }} />;
+}
+
+function TableIcon() {
+  return (
+    <svg className="table-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+      <rect x="2.25" y="3" width="13.5" height="12" rx="1.75" />
+      <path d="M2.25 7h13.5M6.75 3v12M11.25 3v12" />
+    </svg>
+  );
 }
 
 function stoppageMinutes(gf: number, ga: number, index: number) {
@@ -322,13 +411,18 @@ function groupRank(index: number, locale: Locale) {
     const suffix = rank === 1 ? "st" : rank === 2 ? "nd" : rank === 3 ? "rd" : "th";
     return `${rank}${suffix}`;
   }
+  if (locale === "es") return `${rank}.\u00ba`;
   return `${rank}\u00ba`;
 }
 
 function groupOutcomeLabel(locale: Locale, rank: string, advanced: boolean) {
-  if (locale === "en") return advanced ? `Qualified in ${rank} - advances` : `Eliminated in ${rank}`;
-  if (locale === "es") return advanced ? `Clasificado en ${rank} - avanza` : `Eliminado en ${rank}`;
+  if (locale === "en") return advanced ? `Qualified ${rank} - advances` : `Eliminated ${rank}`;
+  if (locale === "es") return advanced ? `Clasificado como ${rank} - avanza` : `Eliminado ${rank}`;
   return advanced ? `Classificado em ${rank} - avan\u00e7a` : `Eliminado em ${rank}`;
+}
+
+function campaignPhaseTitle(phase: string, locale: Locale) {
+  return campaignPhaseLabels[locale][phase] ?? phase;
 }
 
 function groupTeamLabel(label: string, locale: Locale) {
@@ -354,6 +448,21 @@ function pointsLabel(points: number, locale: Locale) {
   return "pts";
 }
 
+function rerollsLeftLabel(count: number, locale: Locale) {
+  if (locale === "en") return "left";
+  return count === 1 ? "restante" : "restantes";
+}
+
+function playerNumberSortValue(player: Player) {
+  return player.number ?? Number.POSITIVE_INFINITY;
+}
+
+function comparePlayersByNumber(left: Player, right: Player) {
+  const numberDiff = playerNumberSortValue(left) - playerNumberSortValue(right);
+  if (numberDiff !== 0) return numberDiff;
+  return left.name.localeCompare(right.name);
+}
+
 function summarizeGoals(goals: CampaignMatch["minutes"], side: "me" | "them") {
   const counts = new Map<string, number>();
   goals
@@ -369,7 +478,7 @@ function AdStrip({ locale }: { locale: Locale }) {
     locale === "pt"
       ? ["anuncie aqui", "contato", "anuncie aqui"]
       : locale === "es"
-        ? ["anuncia aquí", "contacto", "anuncia aquí"]
+        ? ["anúnciate aquí", "contacto", "anúnciate aquí"]
         : ["advertise here", "contact", "advertise here"];
   const hrefs = ["https://pixgg.com/8a0", "https://x.com/chavozik4", "https://pixgg.com/8a0"];
   const items = [...labels, ...labels];
@@ -398,7 +507,11 @@ function updateDraftOptions(draft: Draft, options: DraftOptions) {
   return createDraft(draft.seed, options);
 }
 
+const MOBILE_DRAFT_SCROLL_QUERY = "(max-width: 900px)";
+
 function scrollDraftIntoView() {
+  if (!window.matchMedia?.(MOBILE_DRAFT_SCROLL_QUERY).matches) return;
+
   const layout = document.querySelector(".draft-layout");
   if (!layout) return;
   const top = layout.getBoundingClientRect().top + window.scrollY - 22;
@@ -515,7 +628,8 @@ function RollPanel({
   const playerPool = useMemo(() => {
     if (!squad) return [];
     const used = new Set(draft.usedPlayerIds);
-    return squad.squad
+    return [...squad.squad]
+      .sort(comparePlayersByNumber)
       .filter((player) => !used.has(player.playerId))
       .map((player) => ({ player, selectable: canFillAnySlot(draft, player) }));
   }, [draft, squad]);
@@ -559,7 +673,7 @@ function RollPanel({
       {!isRolling && draft.rerollsLeft > 0 && (
         <div className="reroll-box">
           <span className="eyebrow reroll-label">
-            {t.play.reroll} · {draft.rerollsLeft} {locale === "pt" ? "restantes" : locale === "es" ? "restantes" : "left"}
+            {t.play.reroll} · {draft.rerollsLeft} {rerollsLeftLabel(draft.rerollsLeft, locale)}
           </span>
           <div className="reroll-btns">
             <button className="btn btn-secondary reroll-btn" onClick={() => onReroll("sel")}>
@@ -687,7 +801,7 @@ function RevealView({
         {visible.map((match, index) => (
           <article className={`fixture-card sticker ${match.advanced ? "is-win" : "is-loss"}`} key={`${match.phase}-${index}`}>
             <div className="fixture-top">
-              <span className="eyebrow">{match.phase}</span>
+              <span className="eyebrow">{campaignPhaseTitle(match.phase, locale)}</span>
               <span className="num">{match.opponentOverall}</span>
             </div>
             <div className="fixture-score">
@@ -695,7 +809,7 @@ function RevealView({
               <strong className="num">
                 {match.gf}–{match.ga}
               </strong>
-              <span>{match.opponent}</span>
+              <span>{opponentDisplayName(match.opponent, locale)}</span>
             </div>
             {match.penalties && (
               <p className="fixture-pen">
@@ -707,7 +821,7 @@ function RevealView({
                 <span className="eyebrow">{t.reveal.group}</span>
                 {match.groupTable.map((row, rowIndex) => (
                   <span className={row.me ? "me" : ""} key={`${row.label}-${rowIndex}`}>
-                    {rowIndex + 1}. {row.label} <b>{row.pts}</b>
+                    {rowIndex + 1}. {row.me ? t.reveal.yourTeam : groupTeamLabel(row.label, locale)} <b>{row.pts}</b>
                   </span>
                 ))}
               </div>
@@ -730,7 +844,7 @@ function RevealView({
 }
 
 
-type TournamentTab = "group" | "round" | "table" | "bracket";
+type TournamentTab = "groups" | "bracket";
 
 function tournamentTeamName(team: TournamentTeam | undefined, locale: Locale, fallback: string) {
   if (!team) return fallback;
@@ -750,15 +864,30 @@ function tournamentStageTitle(stage: TournamentStage, locale: Locale) {
   if (stage === "ROUND_OF_16") return locale === "pt" ? "Oitavas" : locale === "es" ? "Octavos" : "Round of 16";
   if (stage === "QUARTERFINAL") return locale === "pt" ? "Quartas" : locale === "es" ? "Cuartos" : "Quarterfinals";
   if (stage === "SEMIFINAL") return "Semifinal";
-  if (stage === "THIRD_PLACE") return locale === "pt" ? "3o lugar" : locale === "es" ? "3er puesto" : "Third place";
+  if (stage === "THIRD_PLACE") return locale === "pt" ? "3º lugar" : locale === "es" ? "Tercer puesto" : "Third place";
   return "Final";
 }
 
-function panelStandings(teamIds: string[], matches: TournamentMatch[], teamsById: Map<string, TournamentTeam>) {
+type PanelStanding = {
+  teamId: string;
+  order: number;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  pts: number;
+  qualified?: boolean;
+  thirdRank?: number;
+};
+
+function panelStandings(teamIds: string[], matches: TournamentMatch[], teamsById: Map<string, TournamentTeam>): PanelStanding[] {
   const base = new Map(
     teamIds.map((teamId, index) => [
       teamId,
-      { teamId, order: index, played: 0, pts: 0, gf: 0, ga: 0, gd: 0 },
+      { teamId, order: index, played: 0, wins: 0, draws: 0, losses: 0, pts: 0, gf: 0, ga: 0, gd: 0 },
     ]),
   );
   matches.forEach((match) => {
@@ -773,9 +902,17 @@ function panelStandings(teamIds: string[], matches: TournamentMatch[], teamsById
     away.ga += match.homeScore;
     home.gd = home.gf - home.ga;
     away.gd = away.gf - away.ga;
-    if (match.homeScore > match.awayScore) home.pts += 3;
-    else if (match.homeScore < match.awayScore) away.pts += 3;
-    else {
+    if (match.homeScore > match.awayScore) {
+      home.wins += 1;
+      away.losses += 1;
+      home.pts += 3;
+    } else if (match.homeScore < match.awayScore) {
+      away.wins += 1;
+      home.losses += 1;
+      away.pts += 3;
+    } else {
+      home.draws += 1;
+      away.draws += 1;
       home.pts += 1;
       away.pts += 1;
     }
@@ -790,45 +927,144 @@ function panelStandings(teamIds: string[], matches: TournamentMatch[], teamsById
   });
 }
 
-function TournamentMatchRow({
-  locale,
-  match,
-  teamsById,
-  scoreVisible,
-}: {
-  locale: Locale;
-  match: TournamentMatch;
-  teamsById: Map<string, TournamentTeam>;
-  scoreVisible: boolean;
-}) {
-  const labels = tournamentLabels[locale];
-  const home = teamsById.get(match.homeTeamId);
-  const away = teamsById.get(match.awayTeamId);
+function standingRowsForGroup(
+  group: NonNullable<ReturnType<typeof simulateCampaign>>["tournament"]["groups"][number],
+  visibleMatchday: number,
+  tournamentMatches: TournamentMatch[],
+  teamsById: Map<string, TournamentTeam>,
+) {
+  if (visibleMatchday >= 3) return group.standings;
+  return panelStandings(
+    group.teamIds,
+    tournamentMatches.filter((match) => match.stage === "GROUP" && match.group === group.group && (match.matchday ?? 0) <= visibleMatchday),
+    teamsById,
+  );
+}
+
+function TeamFlag({ team, locale }: { team: TournamentTeam | undefined; locale: Locale }) {
+  if (!team?.sel) return <span className="tour-flag-placeholder" aria-hidden="true" />;
+  return <FlagImage code={team.sel} label={tournamentTeamName(team, locale, team.label)} />;
+}
+
+function teamResultInMatch(match: TournamentMatch, teamId: string) {
+  const isHome = match.homeTeamId === teamId;
+  const gf = isHome ? match.homeScore : match.awayScore;
+  const ga = isHome ? match.awayScore : match.homeScore;
+  if (gf > ga) return "win";
+  if (gf < ga) return "loss";
+  return "draw";
+}
+
+function TournamentForm({ teamId, matches }: { teamId: string; matches: TournamentMatch[] }) {
+  const results = matches
+    .filter((match) => match.homeTeamId === teamId || match.awayTeamId === teamId)
+    .sort((left, right) => left.id - right.id)
+    .slice(-5)
+    .map((match) => teamResultInMatch(match, teamId));
   return (
-    <div className={`tour-match ${match.isUserMatch ? "is-user" : ""}`}>
-      <span className="tour-match-team">{tournamentTeamName(home, locale, labels.tbd)}</span>
-      <strong className={`num tour-match-score ${scoreVisible ? "" : "is-locked"}`}>
-        {tournamentMatchScore(match, scoreVisible, labels)}
-      </strong>
-      <span className="tour-match-team">{tournamentTeamName(away, locale, labels.tbd)}</span>
+    <div className="tour-form" aria-label="form">
+      {Array.from({ length: 5 }, (_, index) => {
+        const result = results[index];
+        return <span className={`tour-form-dot ${result ? `is-${result}` : ""}`} key={index} aria-label={result ?? undefined} />;
+      })}
     </div>
   );
 }
 
-function TournamentPanel({
+function GroupStandingsTable({
+  group,
+  locale,
+  labels,
+  rows,
+  teamsById,
+  visibleMatches,
+}: {
+  group: string;
+  locale: Locale;
+  labels: (typeof tournamentLabels)[Locale];
+  rows: PanelStanding[] | NonNullable<ReturnType<typeof simulateCampaign>>["tournament"]["groups"][number]["standings"];
+  teamsById: Map<string, TournamentTeam>;
+  visibleMatches: TournamentMatch[];
+}) {
+  return (
+    <section className="tour-group-card">
+      <h3>{labels.group} {group}</h3>
+      <div className="tour-standings" role="table" aria-label={`${labels.group} ${group}`}>
+        <div className="tour-standings-row is-head" role="row">
+          <span>{labels.team}</span>
+          <span>{labels.pts}</span>
+          <span>{labels.played}</span>
+          <span>{labels.wins}</span>
+          <span>{labels.draws}</span>
+          <span>{labels.losses}</span>
+          <span>{labels.for}</span>
+          <span>{labels.ga}</span>
+          <span>{labels.gd}</span>
+          <span>{labels.form}</span>
+        </div>
+        {rows.map((row, index) => {
+          const team = teamsById.get(row.teamId);
+          return (
+            <div className={`tour-standings-row ${team?.isUser ? "is-user" : ""} ${row.qualified ? "is-qualified" : ""}`} role="row" key={row.teamId}>
+              <span className="tour-team-name"><span className="num">{index + 1}</span><TeamFlag team={team} locale={locale} /><strong>{tournamentTeamName(team, locale, labels.tbd)}</strong></span>
+              <strong className="num">{row.pts}</strong>
+              <span className="num">{row.played}</span>
+              <span className="num">{row.wins}</span>
+              <span className="num">{row.draws}</span>
+              <span className="num">{row.losses}</span>
+              <span className="num">{row.gf}</span>
+              <span className="num">{row.ga}</span>
+              <span className="num">{row.gd > 0 ? `+${row.gd}` : row.gd}</span>
+              <TournamentForm teamId={row.teamId} matches={visibleMatches} />
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function BracketMatchCard({
+  locale,
+  labels,
+  match,
+  teamsById,
+  scoreVisible,
+  teamsVisible,
+}: {
+  locale: Locale;
+  labels: (typeof tournamentLabels)[Locale];
+  match: TournamentMatch;
+  teamsById: Map<string, TournamentTeam>;
+  scoreVisible: boolean;
+  teamsVisible: boolean;
+}) {
+  const home = teamsVisible ? teamsById.get(match.homeTeamId) : undefined;
+  const away = teamsVisible ? teamsById.get(match.awayTeamId) : undefined;
+  const score = scoreVisible ? tournamentMatchScore(match, scoreVisible, labels) : "vs";
+  return (
+    <article className={`tour-bracket-match ${match.isUserMatch ? "is-user" : ""}`}>
+      <div className="tour-bracket-side"><TeamFlag team={home} locale={locale} /><strong>{tournamentTeamName(home, locale, labels.tbd)}</strong></div>
+      <div className={`tour-bracket-score num ${scoreVisible ? "" : "is-locked"}`}>{score}</div>
+      <div className="tour-bracket-side"><TeamFlag team={away} locale={locale} /><strong>{tournamentTeamName(away, locale, labels.tbd)}</strong></div>
+    </article>
+  );
+}
+
+function TournamentModal({
   locale,
   result,
   visibleCount,
+  onClose,
 }: {
   locale: Locale;
   result: NonNullable<ReturnType<typeof simulateCampaign>>;
   visibleCount: number;
+  onClose: () => void;
 }) {
   const labels = tournamentLabels[locale];
-  const [tab, setTab] = useState<TournamentTab>("group");
   const tournament = result.tournament;
   const teamsById = useMemo(() => new Map(tournament.teams.map((team) => [team.id, team])), [tournament.teams]);
-  const userGroup = tournament.groups.find((group) => group.group === tournament.userGroup)!;
   const revealedCampaign = result.campaign.slice(0, visibleCount);
   const revealedMatchIds = new Set(revealedCampaign.map((match) => match.matchId).filter((id): id is number => typeof id === "number"));
   const revealedTournamentMatches = tournament.matches.filter((match) => revealedMatchIds.has(match.id));
@@ -836,89 +1072,88 @@ function TournamentPanel({
   const revealedGroupMatchday = Math.max(0, ...revealedTournamentMatches.filter((match) => match.stage === "GROUP").map((match) => match.matchday ?? 0));
   const nextCampaignMatch = result.campaign[visibleCount];
   const nextTournamentMatch = nextCampaignMatch?.matchId ? tournament.matches.find((match) => match.id === nextCampaignMatch.matchId) : null;
-  const latestTournamentMatch = revealedTournamentMatches.at(-1) ?? nextTournamentMatch ?? null;
-  const activeStage = latestTournamentMatch?.stage ?? "GROUP";
-  const activeMatchday = activeStage === "GROUP" ? Math.max(1, revealedGroupMatchday || nextTournamentMatch?.matchday || 1) : 0;
-  const groupRoundMatches = tournament.matches.filter((match) => match.stage === "GROUP" && match.group === tournament.userGroup && match.matchday === activeMatchday);
-  const visibleGroupMatches = tournament.matches.filter((match) => match.stage === "GROUP" && match.group === tournament.userGroup && (match.matchday ?? 0) <= revealedGroupMatchday);
-  const liveStandings = revealedGroupMatchday >= 3 ? userGroup.standings : panelStandings(userGroup.teamIds, visibleGroupMatches, teamsById);
-  const currentStageMatches = tournament.matches.filter((match) => match.stage === activeStage && match.stage !== "GROUP");
-  const nextStage = nextTournamentMatch?.stage;
-  const bracketStages: TournamentStage[] = ["ROUND_OF_32", "ROUND_OF_16", "QUARTERFINAL", "SEMIFINAL", "THIRD_PLACE", "FINAL"];
-  const visibleBracketStages = bracketStages.filter((stage) => revealedStages.has(stage) || stage === nextStage);
+  const knockoutHasFocus = (nextTournamentMatch?.stage && nextTournamentMatch.stage !== "GROUP") || [...revealedStages].some((stage) => stage !== "GROUP");
+  const [tab, setTab] = useState<TournamentTab>(knockoutHasFocus ? "bracket" : "groups");
+  const bracketStages: TournamentStage[] = ["ROUND_OF_32", "ROUND_OF_16", "QUARTERFINAL", "SEMIFINAL", "FINAL", "THIRD_PLACE"];
+  const stageOrder = new Map(bracketStages.map((stage, index) => [stage, index]));
+  const visibleGroupMatches = tournament.matches.filter((match) => match.stage === "GROUP" && (match.matchday ?? 0) <= revealedGroupMatchday);
+  const nextKnockoutStage = nextTournamentMatch?.stage !== "GROUP" ? nextTournamentMatch?.stage : undefined;
+  const latestRevealedKnockoutIndex = Math.max(
+    -1,
+    ...[...revealedStages].filter((stage) => stage !== "GROUP").map((stage) => stageOrder.get(stage) ?? -1),
+  );
 
   function scoreVisible(match: TournamentMatch) {
     if (match.stage === "GROUP") return (match.matchday ?? 0) <= revealedGroupMatchday;
     return revealedStages.has(match.stage);
   }
 
+  function bracketTeamsVisible(stage: TournamentStage) {
+    const index = stageOrder.get(stage) ?? 0;
+    if (index === 0) return true;
+    if (stage === nextKnockoutStage) return true;
+    return latestRevealedKnockoutIndex >= index - 1;
+  }
+
   return (
-    <section className="tournament-panel sticker" aria-label={labels.button}>
-      <div className="tour-tabs" role="tablist" aria-label={labels.button}>
-        {(["group", "round", "table", "bracket"] as const).map((item) => (
-          <button className={`tour-tab ${tab === item ? "is-active" : ""}`} key={item} onClick={() => setTab(item)} type="button">
-            {labels[item]}
-          </button>
-        ))}
-      </div>
-
-      {tab === "group" && (
-        <div className="tour-section">
-          <div className="tour-section-head"><span className="eyebrow">{labels.group} {tournament.userGroup}</span></div>
-          <div className="tour-team-grid">
-            {userGroup.teamIds.map((teamId) => {
-              const team = teamsById.get(teamId);
-              return <div className={`tour-team ${team?.isUser ? "is-user" : ""}`} key={teamId}><span className="num">{team?.slot}</span><strong>{tournamentTeamName(team, locale, labels.tbd)}</strong></div>;
-            })}
+    <div className="tour-modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section className="tour-modal" role="dialog" aria-modal="true" aria-label={labels.viewTable} onMouseDown={(event) => event.stopPropagation()}>
+        <header className="tour-modal-head">
+          <div>
+            <span className="eyebrow">{labels.button}</span>
+            <h2>{labels.viewTable}</h2>
           </div>
-          <div className="tour-list">
-            {tournament.matches.filter((match) => match.stage === "GROUP" && match.group === tournament.userGroup && match.isUserMatch).map((match) => (
-              <TournamentMatchRow locale={locale} match={match} teamsById={teamsById} scoreVisible={scoreVisible(match)} key={match.id} />
+          <button className="tour-modal-close" type="button" onClick={onClose} aria-label={labels.close}>X</button>
+        </header>
+        <div className="tour-tabs" role="tablist" aria-label={labels.viewTable}>
+          <button className={`tour-tab ${tab === "groups" ? "is-active" : ""}`} onClick={() => setTab("groups")} type="button">{labels.groupsTab}</button>
+          <button className={`tour-tab ${tab === "bracket" ? "is-active" : ""}`} onClick={() => setTab("bracket")} type="button">{labels.bracketTab}</button>
+        </div>
+
+        {tab === "groups" ? (
+          <div className="tour-groups-grid">
+            {tournament.groups.map((group) => (
+              <GroupStandingsTable
+                group={group.group}
+                key={group.group}
+                labels={labels}
+                locale={locale}
+                rows={standingRowsForGroup(group, revealedGroupMatchday, tournament.matches, teamsById)}
+                teamsById={teamsById}
+                visibleMatches={visibleGroupMatches.filter((match) => match.group === group.group)}
+              />
             ))}
           </div>
-        </div>
-      )}
-
-      {tab === "round" && (
-        <div className="tour-section">
-          <div className="tour-section-head"><span className="eyebrow">{activeStage === "GROUP" ? `${labels.round} ${activeMatchday}` : tournamentStageTitle(activeStage, locale)}</span></div>
-          <div className="tour-list">
-            {(activeStage === "GROUP" ? groupRoundMatches : currentStageMatches).map((match) => (
-              <TournamentMatchRow locale={locale} match={match} teamsById={teamsById} scoreVisible={scoreVisible(match)} key={match.id} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {tab === "table" && (
-        <div className="tour-section">
-          <div className="tour-section-head"><span className="eyebrow">{labels.table} {tournament.userGroup}</span></div>
-          <div className="tour-table">
-            {liveStandings.map((row, index) => {
-              const team = teamsById.get(row.teamId);
-              return <div className={`tour-table-row ${team?.isUser ? "is-user" : ""}`} key={row.teamId}><span className="num">{index + 1}</span><strong>{tournamentTeamName(team, locale, labels.tbd)}</strong><span className="num">{row.pts} {labels.pts}</span><span className="num">{row.gd >= 0 ? `+${row.gd}` : row.gd} {labels.gd}</span></div>;
+        ) : (
+          <div className="tour-bracket-grid">
+            {bracketStages.map((stage) => {
+              const matches = tournament.matches.filter((match) => match.stage === stage);
+              return (
+                <section className={`tour-bracket-stage stage-${stage.toLowerCase().replaceAll("_", "-")}`} key={stage}>
+                  <h3>{tournamentStageTitle(stage, locale)}</h3>
+                  <div className="tour-bracket-list">
+                    {matches.map((match) => (
+                      <BracketMatchCard
+                        key={match.id}
+                        labels={labels}
+                        locale={locale}
+                        match={match}
+                        teamsById={teamsById}
+                        scoreVisible={scoreVisible(match)}
+                        teamsVisible={bracketTeamsVisible(stage)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
             })}
           </div>
-        </div>
-      )}
-
-      {tab === "bracket" && (
-        <div className="tour-section">
-          {visibleBracketStages.length === 0 ? <p className="tour-empty">{labels.locked}</p> : visibleBracketStages.map((stage) => (
-            <div className="tour-stage" key={stage}>
-              <span className="eyebrow">{tournamentStageTitle(stage, locale)}</span>
-              <div className="tour-list">
-                {tournament.matches.filter((match) => match.stage === stage).map((match) => (
-                  <TournamentMatchRow locale={locale} match={match} teamsById={teamsById} scoreVisible={scoreVisible(match)} key={match.id} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
+        )}
+      </section>
+    </div>
   );
 }
+
 function AnimatedRevealView({
   locale,
   result,
@@ -949,6 +1184,10 @@ function AnimatedRevealView({
   const allMatchesVisible = visibleCount >= result.campaign.length;
   const campaignComplete = allMatchesVisible && readyForNext;
   const msPerMin = revealSpeeds[speed];
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
 
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -1045,18 +1284,10 @@ function AnimatedRevealView({
               ))}
             </select>
           </label>
-          <button
-            className={`chip tournament-toggle ${tournamentOpen ? "is-active" : ""}`}
-            type="button"
-            aria-expanded={tournamentOpen}
-            onClick={() => setTournamentOpen((current) => !current)}
-          >
-            {tournamentLabels[locale].button}
-          </button>
           <SettingsToggle locale={locale} label={t.home.settings} />
         </div>
       </section>
-      {tournamentOpen && <TournamentPanel locale={locale} result={result} visibleCount={visibleCount} />}
+      {tournamentOpen && <TournamentModal locale={locale} result={result} visibleCount={visibleCount} onClose={() => setTournamentOpen(false)} />}
       <div className="fixture-list" ref={fixtureListRef}>
         {visible.map((match, index) => (
           <AnimatedFixture
@@ -1078,14 +1309,22 @@ function AnimatedRevealView({
           <button className="btn btn-secondary reveal-repeat" onClick={onAgain} type="button">
             {"\u21bb"} {t.card.again}
           </button>
+          <button className="btn btn-secondary reveal-table" onClick={() => setTournamentOpen(true)} type="button">
+            <TableIcon /> {tournamentLabels[locale].viewTable}
+          </button>
           <button className="btn btn-primary reveal-next" onClick={onDone} type="button">
             {t.reveal.card}
           </button>
         </div>
       ) : showNextButton ? (
-        <button className="btn btn-primary reveal-next" onClick={revealNext} type="button">
-          {visibleCount === 0 ? t.reveal.first : t.reveal.next}
-        </button>
+        <div className="reveal-action-row">
+          <button className="btn btn-primary reveal-next" onClick={revealNext} type="button">
+            {visibleCount === 0 ? t.reveal.first : t.reveal.next}
+          </button>
+          <button className="btn btn-secondary reveal-table" onClick={() => setTournamentOpen(true)} type="button">
+            <TableIcon /> {tournamentLabels[locale].viewTable}
+          </button>
+        </div>
       ) : null}
     </main>
   );
@@ -1099,7 +1338,7 @@ function RevealSummary({
   result: NonNullable<ReturnType<typeof simulateCampaign>>;
 }) {
   const t = messages[locale];
-  const goalsAgainstLabel = locale === "pt" ? "sofridos" : locale === "es" ? "recibidos" : "against";
+  const goalsAgainstLabel = t.card.ga;
   return (
     <section className="campaign-summary">
       <div className="summary-mark">
@@ -1193,6 +1432,7 @@ function AnimatedFixture({
   onToggle: () => void;
 }) {
   const t = messages[locale];
+  const summaryLabels = fixtureSummaryLabels[locale];
   const [firstHalfExtra, secondHalfExtra] = stoppageMinutes(match.gf, match.ga, index);
   const timing = revealTiming(msPerMin, firstHalfExtra, secondHalfExtra);
   const finalElapsed = timing.p5End + 600 + revealExtraDuration(match, msPerMin);
@@ -1257,10 +1497,11 @@ function AnimatedFixture({
   const groupRankText = groupPosition >= 0 ? groupRank(groupPosition, locale) : "";
   const hasFinalTone = !active || instant || showFinal;
   const resultTone = hasFinalTone ? (match.advanced ? "is-win" : "is-loss") : "is-live";
+  const scoreTone = !pending && liveGf < liveGa ? "is-score-loss" : "";
 
   return (
     <article
-      className={`fixture-card sticker reveal-fixture ${resultTone} ${active ? "is-current" : ""} ${expanded ? "is-expanded" : ""} ${match.penalties && showFinal ? "is-pen" : ""}`}
+      className={`fixture-card sticker reveal-fixture ${resultTone} ${scoreTone} ${active ? "is-current" : ""} ${expanded ? "is-expanded" : ""} ${match.penalties && showFinal ? "is-pen" : ""}`}
     >
       <button
         aria-expanded={expanded}
@@ -1268,7 +1509,7 @@ function AnimatedFixture({
         onClick={onToggle}
         type="button"
       >
-        <span className="fx-phase">{match.phase}</span>
+        <span className="fx-phase">{campaignPhaseTitle(match.phase, locale)}</span>
         <span className="fx-opp">
           <span className="fx-vs">vs</span>
           <span className="fx-flag" aria-label={nationName(code, locale)}>
@@ -1292,13 +1533,13 @@ function AnimatedFixture({
           <span className="fx-scorers">
             {goalSummary && (
               <span>
-                <b>GOLS</b> {goalSummary}
+                <b>{summaryLabels.goals}</b> {goalSummary}
               </span>
             )}
-            {goalSummary && concededSummary && <em>\u00b7</em>}
+            {goalSummary && concededSummary && <em>{"\u00b7"}</em>}
             {concededSummary && (
               <span>
-                <b>SOFREU</b> {concededSummary}
+                <b>{summaryLabels.conceded}</b> {concededSummary}
               </span>
             )}
           </span>
@@ -1328,12 +1569,12 @@ function AnimatedFixture({
               <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].bestOfFive}</div>
               {!penaltyComplete && nextPenaltyKick && (
                 <span className="penalty-live">
-                  {penaltyLiveLabels[locale]} {"\u00b7"} {nextPenaltyKick.name ?? (nextPenaltyKick.side === "me" ? t.reveal.yourTeam : match.opponent)}
+                  {penaltyLiveLabels[locale]} {"\u00b7"} {nextPenaltyKick.name ?? (nextPenaltyKick.side === "me" ? t.reveal.yourTeam : opponentName)}
                 </span>
               )}
               <div className="rv-pens-rounds">
                 {basePenaltyRows.map((row) => (
-                  <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={match.opponent} key={`base-${row.index}`} />
+                  <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={opponentName} key={`base-${row.index}`} />
                 ))}
               </div>
               {suddenDeathPenaltyRows.length > 0 && (
@@ -1341,7 +1582,7 @@ function AnimatedFixture({
                   <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].suddenDeath}</div>
                   <div className="rv-pens-rounds">
                     {suddenDeathPenaltyRows.map((row) => (
-                      <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={match.opponent} key={`sd-${row.index}`} />
+                      <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={opponentName} key={`sd-${row.index}`} />
                     ))}
                   </div>
                 </div>
@@ -1596,13 +1837,11 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
               {draft.options.mode === "classico" ? t.play.classic : t.play.memory}
             </span>
             <div className="play-toggles">
-              <Link className="profile-link profile-link--compact" href={localePath(locale, "/perfil")} aria-label={t.home.profile} prefetch={false}>
-                <svg className="profile-link-ic" viewBox="0 0 40 40" aria-hidden="true">
-                  <rect x="7" y="9" width="26" height="22" rx="2" />
-                  <circle cx="15" cy="18" r="3.2" />
-                  <path d="M10.5 26.5c1.2-3 7.6-3 8.8 0" />
-                  <line x1="24" y1="16" x2="29.5" y2="16" />
-                  <line x1="24" y1="21" x2="29.5" y2="21" />
+              <Link className="profile-link play-profile-link" href={localePath(locale, "/perfil")} prefetch={false}>
+                <svg className="profile-ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="7.5" r="3.5" />
+                  <path d="M5.2 20c.8-4 4-6.1 6.8-6.1s6 2.1 6.8 6.1" />
+                  <path d="M8 20h8" />
                 </svg>
                 <span className="profile-link-label">{t.home.profile}</span>
               </Link>

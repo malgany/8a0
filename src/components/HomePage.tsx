@@ -56,7 +56,7 @@ export function HomePage({ locale }: { locale: Locale }) {
             <span className="score-dots score-dots--right" aria-hidden="true" />
             <div className="score-mark" aria-hidden="true">
               <span className="score-number">8</span>
-              <span className="score-dash">-</span>
+              <span className="score-dash">–</span>
               <span className="score-number">0</span>
             </div>
           </div>
@@ -76,12 +76,7 @@ export function HomePage({ locale }: { locale: Locale }) {
           </p>
           <div className="home-ctas">
             <Link className="btn btn-primary home-cta-main" href={localePath(locale, "/play")} prefetch={false}>
-              <svg className="home-cta-ic" viewBox="0 0 32 32" aria-hidden="true">
-                <circle cx="16" cy="16" r="11.5" />
-                <path d="m16 9.4 5.1 3.7-2 6H12.9l-2-6L16 9.4Z" />
-                <path d="M16 4.5v4.9M5.2 12.4l5.7.7M8.9 25.1l4-6M23.1 25.1l-4-6M26.8 12.4l-5.7.7" />
-                <path d="m9.1 6.9 2 6.2M22.9 6.9l-1.8 6.2M4.9 19.9l8 1.1M27.1 19.9l-8 1.1" />
-              </svg>
+              <span className="home-cta-ball" aria-hidden="true">{"\u26bd"}</span>
               <span>{t.home.cta}</span>
             </Link>
           </div>

@@ -12,25 +12,28 @@ const STREAMER_STORAGE_KEY = "s80-streamer-mode";
 const LEGACY_STREAMER_STORAGE_KEY = "s70-streamer-mode";
 const settingsCopy = {
   pt: {
-    tech: "Ficha tecnica",
+    tech: "Ficha técnica",
     theme: "Tema",
     light: "Claro",
     dark: "Escuro",
     language: "Idioma",
+    selectLanguage: "Selecionar idioma",
   },
   en: {
-    tech: "Tech sheet",
+    tech: "Technical info",
     theme: "Theme",
     light: "Light",
     dark: "Dark",
     language: "Language",
+    selectLanguage: "Select language",
   },
   es: {
-    tech: "Ficha tecnica",
+    tech: "Ficha técnica",
     theme: "Tema",
     light: "Claro",
     dark: "Oscuro",
     language: "Idioma",
+    selectLanguage: "Seleccionar idioma",
   },
 } as const;
 
@@ -51,13 +54,14 @@ function readStoredTheme() {
 export function LanguageToggle({ locale }: { locale: Locale }) {
   const router = useRouter();
   const pathname = usePathname();
+  const copy = settingsCopy[locale];
   return (
     <div className="lang-toggle" role="presentation">
       <span className="lang-toggle-val" aria-hidden="true">
         {langLabels[locale]}
       </span>
       <select
-        aria-label="Select language"
+        aria-label={copy.selectLanguage}
         value={locale}
         onChange={(event) => router.push(pathForLocale(pathname, normalizeLocale(event.target.value)))}
       >

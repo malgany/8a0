@@ -1,4 +1,4 @@
-export function Logo({ subtitle = "monte · simule · 8 a 0" }: { subtitle?: string }) {
+export function Logo({ subtitle = "sorteie · escale · jogue" }: { subtitle?: string }) {
   return (
     <span className="lk lk-horz logo" aria-label="8a0 — Oito a Zero">
       <span className="mark80 num" aria-hidden="true">
