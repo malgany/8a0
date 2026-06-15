@@ -1,0 +1,4 @@
+interface:
+  display_name: "Preencher 8a0"
+  short_description: "Preenche escalação local do 8a0"
+  default_prompt: "Use $fill-8a0-lineup para abrir o jogo local e preencher a escalação automaticamente."

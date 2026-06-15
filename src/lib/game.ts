@@ -1275,7 +1275,7 @@ export function simulateCampaign(
 
   const final = tournament.matches.find((match) => match.id === 104);
   const champion = final?.winnerTeamId === tournament.userTeamId;
-  const perfect = champion && campaign.length === 8 && losses === 0;
+  const perfect = champion && campaign.length === 8 && wins === campaign.length && draws === 0 && losses === 0;
   const badge = perfect && gf - ga >= 18 ? "ESMAGADOR DE RECORDES" : champion && ga === 0 ? "MURALHA" : null;
   return {
     record: `${wins}-${losses}`,

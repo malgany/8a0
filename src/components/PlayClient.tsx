@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { CampaignMatch, Draft, DraftOptions, Locale, Player, SharePayload, SquadFile, TournamentMatch, TournamentStage, TournamentTeam } from "@/lib/types";
 import {
   availablePositions,
@@ -532,13 +532,16 @@ function Pitch({
   locale,
   draft,
   selected,
+  movingFromSlot,
   onSlot,
 }: {
   locale: Locale;
   draft: Draft;
   selected: Player | null;
+  movingFromSlot: number | null;
   onSlot: (slot: number) => void;
 }) {
+  const movingPlayer = movingFromSlot === null ? null : draft.filled[movingFromSlot];
   return (
     <div className="pitch-outer">
       <AdStrip locale={locale} />
@@ -548,10 +551,12 @@ function Pitch({
           {draft.slots.map((slot, index) => {
             const player = draft.filled[index];
             const active = selected ? selected.positions.includes(slot.pos) && !player : false;
+            const moveFrom = movingFromSlot === index && Boolean(player);
+            const moveTarget = movingPlayer ? !player && movingPlayer.positions.includes(slot.pos) : false;
             return (
               <button
                 key={`${slot.pos}-${index}`}
-                className={`disc ${player ? "slot-filled" : "empty slot-empty"} ${active ? "slot-active slot-pickable" : ""}`}
+                className={`disc ${player ? "slot-filled" : "empty slot-empty"} ${active ? "slot-active slot-pickable" : ""} ${moveFrom ? "move-from is-moving" : ""} ${moveTarget ? "move-target" : ""}`}
                 style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
                 onClick={() => onSlot(index)}
                 type="button"
@@ -1087,6 +1092,23 @@ function bracketMatchStyle(stage: TournamentStage, index: number): BracketMatchS
   return {};
 }
 
+const bracketVisualOrder: Partial<Record<TournamentStage, number[]>> = {
+  ROUND_OF_32: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
+  ROUND_OF_16: [89, 90, 93, 94, 91, 92, 95, 96],
+  QUARTERFINAL: [97, 98, 99, 100],
+  SEMIFINAL: [101, 102],
+  FINAL: [104],
+  THIRD_PLACE: [103],
+};
+
+function bracketMatchesForStage(matches: TournamentMatch[], stage: TournamentStage) {
+  const stageMatches = matches.filter((match) => match.stage === stage);
+  const order = bracketVisualOrder[stage];
+  if (!order) return stageMatches;
+  const orderIndex = new Map(order.map((id, index) => [id, index]));
+  return [...stageMatches].sort((left, right) => (orderIndex.get(left.id) ?? 999) - (orderIndex.get(right.id) ?? 999));
+}
+
 function TournamentModal({
   locale,
   result,
@@ -1100,6 +1122,22 @@ function TournamentModal({
 }) {
   const labels = tournamentLabels[locale];
   const tournament = result.tournament;
+  const bracketScrollRef = useRef<HTMLDivElement>(null);
+  const dragStateRef = useRef<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    startScrollLeft: number;
+    startScrollTop: number;
+    moved: boolean;
+  }>({
+    active: false,
+    startX: 0,
+    startY: 0,
+    startScrollLeft: 0,
+    startScrollTop: 0,
+    moved: false,
+  });
   const teamsById = useMemo(() => new Map(tournament.teams.map((team) => [team.id, team])), [tournament.teams]);
   const revealedCampaign = result.campaign.slice(0, visibleCount);
   const revealedMatchIds = new Set(revealedCampaign.map((match) => match.matchId).filter((id): id is number => typeof id === "number"));
@@ -1121,6 +1159,7 @@ function TournamentModal({
       .map((match) => match.id),
   );
   const showFullKnockoutAfterElimination = campaignFinished && userKnockoutLossIds.size > 0;
+  const groupsComplete = revealedGroupMatchday >= 3 || Boolean(nextKnockoutStage) || [...revealedStages].some((stage) => stage !== "GROUP");
   const latestRevealedKnockoutIndex = Math.max(
     -1,
     ...[...revealedStages].filter((stage) => stage !== "GROUP").map((stage) => stageOrder.get(stage) ?? -1),
@@ -1135,9 +1174,53 @@ function TournamentModal({
   function bracketTeamsVisible(stage: TournamentStage) {
     if (showFullKnockoutAfterElimination) return true;
     const index = stageOrder.get(stage) ?? 0;
-    if (index === 0) return true;
+    if (index === 0) return groupsComplete;
     if (stage === nextKnockoutStage) return true;
     return latestRevealedKnockoutIndex >= index - 1;
+  }
+
+  function onBracketPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("a,input,select,textarea")) return;
+    const container = bracketScrollRef.current;
+    if (!container) return;
+    dragStateRef.current = {
+      active: true,
+      startX: event.clientX,
+      startY: event.clientY,
+      startScrollLeft: container.scrollLeft,
+      startScrollTop: container.scrollTop,
+      moved: false,
+    };
+    container.classList.add("is-dragging");
+    container.setPointerCapture(event.pointerId);
+  }
+
+  function onBracketPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const container = bracketScrollRef.current;
+    const dragState = dragStateRef.current;
+    if (!container || !dragState.active) return;
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+    if (Math.hypot(deltaX, deltaY) > 4) dragState.moved = true;
+    container.scrollLeft = dragState.startScrollLeft - deltaX;
+    container.scrollTop = dragState.startScrollTop - deltaY;
+    if (dragState.moved) event.preventDefault();
+  }
+
+  function endBracketDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const container = bracketScrollRef.current;
+    const dragState = dragStateRef.current;
+    if (!container || !dragState.active) return;
+    dragState.active = false;
+    container.classList.remove("is-dragging");
+    if (container.hasPointerCapture(event.pointerId)) {
+      container.releasePointerCapture(event.pointerId);
+    }
+    if (dragState.moved) {
+      event.preventDefault();
+    }
   }
 
   return (
@@ -1170,9 +1253,16 @@ function TournamentModal({
             ))}
           </div>
         ) : (
-          <div className="tour-bracket-grid">
+          <div
+            className="tour-bracket-grid"
+            ref={bracketScrollRef}
+            onPointerDown={onBracketPointerDown}
+            onPointerMove={onBracketPointerMove}
+            onPointerUp={endBracketDrag}
+            onPointerCancel={endBracketDrag}
+          >
             {bracketStages.map((stage) => {
-              const matches = tournament.matches.filter((match) => match.stage === stage);
+              const matches = bracketMatchesForStage(tournament.matches, stage);
               return (
                 <section className={`tour-bracket-stage stage-${stage.toLowerCase().replaceAll("_", "-")}`} key={stage}>
                   <h3>{tournamentStageTitle(stage, locale)}</h3>
@@ -1450,8 +1540,8 @@ function PenaltyRound({
       <span className="rv-kick-row rv-kick-row--them">
         {opponent && (
           <>
-            <span className="rv-kick-name">{opponent.name ?? opponentName}</span>
             <PenaltyKickMark kick={opponent.kick} />
+            <span className="rv-kick-name">{opponent.name ?? opponentName}</span>
           </>
         )}
       </span>
@@ -1511,7 +1601,8 @@ function AnimatedFixture({
   const liveGa = inProgress ? visibleGoals.filter((goal) => goal.side === "them").length : match.ga;
   const latestGoal = visibleGoals.at(-1);
   const showFinal = !pending && !inProgress;
-  const mark = match.phase === "FINAL" && match.advanced ? "*" : match.advanced ? "\u2713" : "\u00d7";
+  const resultMark = match.gf === match.ga ? "-" : match.advanced ? "\u2713" : "X";
+  const mark = match.phase === "FINAL" && match.advanced ? "*" : resultMark;
   const penaltyKicks = match.penalties ? penaltyTimeline(match.penalties) : [];
   const penaltyStart = timing.p5End + 600;
   const visiblePenaltyCount =
@@ -1571,7 +1662,13 @@ function AnimatedFixture({
           {scoreText}
         </strong>
         <span className="fixture-clock">
-          {showFinal ? <b className="fx-mark">{mark}</b> : clock.label ? <b className="num">{clock.label}&apos;</b> : ""}
+          {showFinal ? (
+            <b className={`fx-mark ${match.gf === match.ga ? "is-draw" : match.advanced ? "is-win" : "is-loss"}`}>{mark}</b>
+          ) : clock.label ? (
+            <b className="num">{clock.label}&apos;</b>
+          ) : (
+            ""
+          )}
         </span>
         <span className="rv-caret" aria-hidden="true">
           {"\u203a"}
@@ -1701,6 +1798,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
   const [draft, setDraft] = useState(() => createSeededDraft(defaultOptions));
   const [squad, setSquad] = useState<SquadFile | null>(null);
   const [selected, setSelected] = useState<Player | null>(null);
+  const [movingFromSlot, setMovingFromSlot] = useState<number | null>(null);
   const [rollingPair, setRollingPair] = useState<DrawPair | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [phase, setPhase] = useState<Phase>("drafting");
@@ -1733,6 +1831,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
         setDraft(loadedDraft);
         setResult(sim);
         setPhase("result");
+        setMovingFromSlot(null);
         setLoading(false);
       }
     }
@@ -1766,6 +1865,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
     const meta = rollPair(draft.seed, draft.rollIndex, recent);
     setSquad(null);
     setSelected(null);
+    setMovingFromSlot(null);
     const [loaded] = await Promise.all([fetchSquad(meta.sel, meta.copa), playRollAnimation(meta)]);
     setSquad(loaded);
     setDraft((current) => ({
@@ -1783,6 +1883,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
     const meta = rerollPair(draft.seed, draft.current, axis, modeConfig[draft.options.mode].rerolls - draft.rerollsLeft + 1);
     setSquad(null);
     setSelected(null);
+    setMovingFromSlot(null);
     const [loaded] = await Promise.all([fetchSquad(meta.sel, meta.copa), playRollAnimation(meta)]);
     setSquad(loaded);
     setDraft((current) => ({
@@ -1801,11 +1902,44 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
     setRollingPair(null);
     setIsRolling(false);
     setSelected(null);
+    setMovingFromSlot(null);
     setResult(null);
     setPhase("drafting");
   }
 
+  function movableTargetSlots(current: Draft, fromSlot: number) {
+    const player = current.filled[fromSlot];
+    if (!player) return [];
+    return current.slots
+      .map((slot, slotIndex) => ({ slot, index: slotIndex }))
+      .filter(({ slot, index: slotIndex }) => slotIndex !== fromSlot && current.filled[slotIndex] === null && player.positions.includes(slot.pos));
+  }
+
   function chooseSlot(index: number) {
+    if (movingFromSlot !== null) {
+      if (index === movingFromSlot) {
+        setMovingFromSlot(null);
+        return;
+      }
+      setDraft((current) => {
+        const player = current.filled[movingFromSlot];
+        const target = current.slots[index];
+        if (!player || !target || current.filled[index] || !player.positions.includes(target.pos)) return current;
+        const filled = [...current.filled];
+        filled[movingFromSlot] = null;
+        filled[index] = player;
+        return { ...current, filled };
+      });
+      setMovingFromSlot(null);
+      return;
+    }
+
+    const clickedPlayer = draft.filled[index];
+    if (!selected && clickedPlayer) {
+      setMovingFromSlot((current) => (current === index || movableTargetSlots(draft, index).length === 0 ? null : index));
+      return;
+    }
+
     if (!selected) return;
     if (draft.filled[index] || !selected.positions.includes(draft.slots[index]!.pos)) return;
     setDraft((current) => {
@@ -1819,11 +1953,13 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
       };
     });
     setSelected(null);
+    setMovingFromSlot(null);
     setSquad(null);
     window.setTimeout(() => scrollTargetIntoView(rollColumnRef.current), 0);
   }
 
   function selectPlayer(player: Player) {
+    setMovingFromSlot(null);
     if (selected?.playerId === player.playerId) {
       setSelected(null);
       return;
@@ -1845,6 +1981,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
     setDraft(createSeededDraft(draft.options));
     setSquad(null);
     setSelected(null);
+    setMovingFromSlot(null);
     setResult(null);
     setPhase("drafting");
   }
@@ -1925,7 +2062,7 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
           )}
         </div>
         <div className="col-pitch" ref={pitchColumnRef}>
-          <Pitch locale={locale} draft={draft} selected={selected} onSlot={chooseSlot} />
+          <Pitch locale={locale} draft={draft} selected={selected} movingFromSlot={movingFromSlot} onSlot={chooseSlot} />
           {!selected && draft.filled.some(Boolean) && <p className="pitch-hint">{t.play.hintMove}</p>}
           {selected && <p className="pitch-hint">{selected.name} · {describePair(selected.sel, selected.copa, locale)}</p>}
         </div>

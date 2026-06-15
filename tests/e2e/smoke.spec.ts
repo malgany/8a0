@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function rollAndPlacePlayer(page: Page) {
   const filledBefore = await page.locator(".disc.slot-filled").count();
-  await page.getByRole("button", { name: /rolar/i }).click({ force: true });
+  await page.getByRole("button", { name: /rolar|sortear/i }).click({ force: true });
   await expect(page.locator(".roll-result")).toBeVisible({ timeout: 10_000 });
   await expect(page.locator(".rolling-strip")).toHaveCount(0, { timeout: 10_000 });
 
@@ -19,6 +19,35 @@ async function rollAndPlacePlayer(page: Page) {
   await expect(page.locator(".disc.slot-filled")).toHaveCount(filledBefore + 1);
 }
 
+async function rollAndSelectMovablePlayer(page: Page) {
+  await page.getByRole("button", { name: /rolar|sortear/i }).click({ force: true });
+  await expect(page.locator(".roll-result")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".rolling-strip")).toHaveCount(0, { timeout: 10_000 });
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const candidates = await page.locator(".player-card:not(.is-disabled)").evaluateAll((cards) =>
+      cards
+        .map((card, index) => ({
+          index,
+          name: card.querySelector(".pc-name")?.textContent?.trim() ?? "",
+          positions: card.querySelector(".pc-pos")?.textContent?.trim() ?? "",
+        }))
+        .filter((item) => item.name && (item.positions.includes("/") || item.positions.includes("+"))),
+    );
+
+    for (const candidate of candidates) {
+      await page.locator(".player-card:not(.is-disabled)").nth(candidate.index).click();
+      if ((await page.locator(".disc.slot-pickable").count()) > 1) return candidate;
+      await page.locator(".player-card.is-active").click();
+    }
+
+    await page.getByRole("button", { name: /outra/i }).first().click();
+    await expect(page.locator(".rolling-strip")).toHaveCount(0, { timeout: 10_000 });
+  }
+
+  throw new Error("Could not find a movable multi-position player");
+}
+
 async function completeLineup(page: Page) {
   for (let index = 0; index < 11; index += 1) {
     await rollAndPlacePlayer(page);
@@ -30,6 +59,32 @@ test("home renders the 8a0 entry experience", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: /^time$/i })).toBeVisible();
   await expect(page.locator(".home-pitch")).toBeVisible();
+});
+
+test("placed multi-position players can move to another open slot", async ({ page }) => {
+  await page.goto("/play");
+  await page.waitForLoadState("networkidle");
+
+  const candidate = await rollAndSelectMovablePlayer(page);
+  await page.locator(".disc.slot-pickable").first().click();
+  await expect(page.locator(".disc.slot-filled").filter({ hasText: candidate.name })).toHaveCount(1);
+
+  const placedDisc = page.locator(".disc.slot-filled").filter({ hasText: candidate.name });
+  const beforeMove = await placedDisc.evaluate((disc) => [...document.querySelectorAll(".disc")].indexOf(disc));
+  await placedDisc.click();
+
+  await expect(page.locator(".disc.move-from").filter({ hasText: candidate.name })).toHaveCount(1);
+  await expect(page.locator(".disc.move-target").first()).toBeVisible();
+  await page.locator(".disc.move-target").first().click();
+
+  await expect(page.locator(".disc.move-from")).toHaveCount(0);
+  await expect(page.locator(".disc.move-target")).toHaveCount(0);
+  await expect(page.locator(".disc.slot-filled").filter({ hasText: candidate.name })).toHaveCount(1);
+  const afterMove = await page
+    .locator(".disc.slot-filled")
+    .filter({ hasText: candidate.name })
+    .evaluate((disc) => [...document.querySelectorAll(".disc")].indexOf(disc));
+  expect(afterMove).not.toBe(beforeMove);
 });
 
 test("play page can roll, simulate, and inspect the Cup panel", async ({ page }) => {
