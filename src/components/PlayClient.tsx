@@ -1067,15 +1067,17 @@ function BracketMatchCard({
   const awayScore = scoreVisible ? tournamentSideScore(match, "away") : "";
   const homeIsUser = home?.isUser ?? false;
   const awayIsUser = away?.isUser ?? false;
+  const userMatchVisible = teamsVisible && match.isUserMatch;
+  const userLossHighlightVisible = userMatchVisible && userLossVisible;
   return (
-    <article className={`tour-bracket-match ${match.isUserMatch ? "is-user" : ""} ${userLossVisible ? "is-user-lost" : ""}`} style={style}>
+    <article className={`tour-bracket-match ${userMatchVisible ? "is-user" : ""} ${userLossHighlightVisible ? "is-user-lost" : ""}`} style={style}>
       <div className="tour-bracket-row">
-        <div className={`tour-bracket-side ${homeIsUser ? "is-user-team" : ""} ${userLossVisible && homeIsUser ? "is-lost-team" : ""}`}><TeamFlag team={home} locale={locale} /><strong>{tournamentTeamName(home, locale, labels.tbd)}</strong></div>
+        <div className={`tour-bracket-side ${homeIsUser ? "is-user-team" : ""} ${userLossHighlightVisible && homeIsUser ? "is-lost-team" : ""}`}><TeamFlag team={home} locale={locale} /><strong>{tournamentTeamName(home, locale, labels.tbd)}</strong></div>
         {scoreVisible && <span className="tour-bracket-team-score num">{homeScore}</span>}
       </div>
       {!scoreVisible && <div className="tour-bracket-score num is-locked">{score}</div>}
       <div className="tour-bracket-row">
-        <div className={`tour-bracket-side ${awayIsUser ? "is-user-team" : ""} ${userLossVisible && awayIsUser ? "is-lost-team" : ""}`}><TeamFlag team={away} locale={locale} /><strong>{tournamentTeamName(away, locale, labels.tbd)}</strong></div>
+        <div className={`tour-bracket-side ${awayIsUser ? "is-user-team" : ""} ${userLossHighlightVisible && awayIsUser ? "is-lost-team" : ""}`}><TeamFlag team={away} locale={locale} /><strong>{tournamentTeamName(away, locale, labels.tbd)}</strong></div>
         {scoreVisible && <span className="tour-bracket-team-score num">{awayScore}</span>}
       </div>
     </article>
