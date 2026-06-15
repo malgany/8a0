@@ -2023,14 +2023,6 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
               {draft.options.mode === "classico" ? t.play.classic : t.play.memory}
             </span>
             <div className="play-toggles">
-              <Link className="profile-link play-profile-link" href={localePath(locale, "/perfil")} prefetch={false}>
-                <svg className="profile-ic" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="7.5" r="3.5" />
-                  <path d="M5.2 20c.8-4 4-6.1 6.8-6.1s6 2.1 6.8 6.1" />
-                  <path d="M8 20h8" />
-                </svg>
-                <span className="profile-link-label">{t.home.profile}</span>
-              </Link>
               <SettingsToggle locale={locale} label={t.home.settings} />
             </div>
           </div>

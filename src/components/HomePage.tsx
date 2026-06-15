@@ -37,14 +37,6 @@ export function HomePage({ locale }: { locale: Locale }) {
           <span className="home-brand-years">{t.home.years}</span>
         </Link>
         <nav className="home-nav" aria-label={t.home.primaryNav}>
-          <Link className="profile-link home-profile-link" href={localePath(locale, "/perfil")} prefetch={false}>
-            <svg className="profile-ic" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="7.5" r="3.5" />
-              <path d="M5.2 20c.8-4 4-6.1 6.8-6.1s6 2.1 6.8 6.1" />
-              <path d="M8 20h8" />
-            </svg>
-            <span>{t.home.profile}</span>
-          </Link>
           <SettingsToggle locale={locale} label={t.home.settings} />
         </nav>
       </header>
