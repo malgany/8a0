@@ -74,7 +74,7 @@ export const messages = {
       primaryNav: "Navegação principal",
       eyebrow: "Copa dos sonhos · 1930 — 2026",
       scoreLabel: "Placar 8 a 0",
-      headline: "SORTEIE. ESCALE.\nBUSQUE O 8 A 0.",
+      headline: "SORTEIE. ESCALE.\nBUSQUE A TAÇA.",
       sub: ["Um país, uma Copa e 11 escolhas. Monte sua seleção dos sonhos e veja se esse elenco consegue cravar o ", "8 a 0", "."],
       cta: "JOGAR",
       profile: "Perfil",
