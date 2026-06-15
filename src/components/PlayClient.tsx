@@ -131,6 +131,9 @@ const tournamentLabels: Record<
     round: string;
     table: string;
     bracket: string;
+    scorersTab: string;
+    scorersTitle: string;
+    goals: string;
     schedule: string;
     locked: string;
     pts: string;
@@ -157,6 +160,9 @@ const tournamentLabels: Record<
     round: "Rodada",
     table: "Tabela",
     bracket: "Chave",
+    scorersTab: "Artilheiros",
+    scorersTitle: "Artilheiros",
+    goals: "Gols",
     schedule: "Calend\u00e1rio",
     locked: "Placar liberado depois do seu jogo",
     pts: "PTS",
@@ -182,6 +188,9 @@ const tournamentLabels: Record<
     round: "Round",
     table: "Table",
     bracket: "Bracket",
+    scorersTab: "Scorers",
+    scorersTitle: "Top scorers",
+    goals: "Goals",
     schedule: "Schedule",
     locked: "Score unlocks after your match",
     pts: "PTS",
@@ -207,6 +216,9 @@ const tournamentLabels: Record<
     round: "Jornada",
     table: "Tabla",
     bracket: "Llave",
+    scorersTab: "Goleadores",
+    scorersTitle: "Goleadores",
+    goals: "Goles",
     schedule: "Calendario",
     locked: "Marcador liberado despu\u00e9s de tu partido",
     pts: "PTS",
@@ -475,6 +487,40 @@ function summarizeGoals(goals: CampaignMatch["minutes"], side: "me" | "them") {
       counts.set(goal.name, (counts.get(goal.name) ?? 0) + 1);
     });
   return [...counts.entries()].map(([name, count]) => (count > 1 ? `${name} (${count})` : name)).join(", ");
+}
+
+type TopScorer = {
+  key: string;
+  name: string;
+  code: string;
+  year: string;
+  goals: number;
+};
+
+function topScorersForCampaign(matches: CampaignMatch[], draft: Draft) {
+  const playerByName = new Map((draft.filled.filter(Boolean) as Player[]).map((player) => [player.name, player]));
+  const scorers = new Map<string, TopScorer>();
+
+  matches.forEach((match) => {
+    const opponent = opponentParts(match.opponent);
+    match.minutes.forEach((goal) => {
+      const player = goal.side === "me" ? playerByName.get(goal.name) : undefined;
+      const code = player?.sel ?? opponent.code;
+      const year = player ? String(player.copa) : opponent.year;
+      const key = `${goal.name}:${code}:${year}`;
+      const current = scorers.get(key);
+      if (current) {
+        current.goals += 1;
+      } else {
+        scorers.set(key, { key, name: goal.name, code, year, goals: 1 });
+      }
+    });
+  });
+
+  return [...scorers.values()].sort((left, right) => {
+    if (right.goals !== left.goals) return right.goals - left.goals;
+    return left.name.localeCompare(right.name);
+  });
 }
 
 function AdStrip({ locale }: { locale: Locale }) {
@@ -853,7 +899,7 @@ function RevealView({
 }
 
 
-type TournamentTab = "groups" | "bracket";
+type TournamentTab = "groups" | "bracket" | "scorers";
 
 function tournamentTeamName(team: TournamentTeam | undefined, locale: Locale, fallback: string) {
   if (!team) return fallback;
@@ -1084,6 +1130,48 @@ function BracketMatchCard({
   );
 }
 
+function TopScorersPanel({
+  draft,
+  labels,
+  locale,
+  matches,
+}: {
+  draft: Draft;
+  labels: (typeof tournamentLabels)[Locale];
+  locale: Locale;
+  matches: CampaignMatch[];
+}) {
+  const scorers = topScorersForCampaign(matches, draft);
+
+  return (
+    <section className="tour-scorers-panel">
+      <h3>{labels.scorersTitle}</h3>
+      <div className="tour-scorers-list">
+        {scorers.map((scorer, index) => (
+          <div className={`tour-scorer-row ${index === 0 ? "is-gold" : index === 1 ? "is-silver" : index === 2 ? "is-bronze" : ""}`} key={scorer.key}>
+            <span className="tour-scorer-rank num">{index + 1}</span>
+            <span className="tour-scorer-main">
+              <strong>{scorer.name}</strong>
+              <span className="tour-scorer-origin">
+                (
+                <span className="tour-scorer-origin-flag">
+                  <FlagImage code={scorer.code} label={nationName(scorer.code, locale)} />
+                </span>
+                <span>{scorer.code}</span>
+                <span>{scorer.year}</span>
+                )
+              </span>
+            </span>
+            <span className="tour-scorer-goals">
+              <b className="num">{scorer.goals}</b>
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function bracketMatchStyle(stage: TournamentStage, index: number): BracketMatchStyle {
   if (stage === "ROUND_OF_32") return { gridRow: `${index * 2 + 1} / span 2`, "--bracket-join-rows": 2 };
   if (stage === "ROUND_OF_16") return { gridRow: `${index * 4 + 2} / span 2`, "--bracket-join-rows": 4 };
@@ -1112,11 +1200,13 @@ function bracketMatchesForStage(matches: TournamentMatch[], stage: TournamentSta
 }
 
 function TournamentModal({
+  draft,
   locale,
   result,
   visibleCount,
   onClose,
 }: {
+  draft: Draft;
   locale: Locale;
   result: NonNullable<ReturnType<typeof simulateCampaign>>;
   visibleCount: number;
@@ -1238,6 +1328,7 @@ function TournamentModal({
         <div className="tour-tabs" role="tablist" aria-label={labels.viewTable}>
           <button className={`tour-tab ${tab === "groups" ? "is-active" : ""}`} onClick={() => setTab("groups")} type="button">{labels.groupsTab}</button>
           <button className={`tour-tab ${tab === "bracket" ? "is-active" : ""}`} onClick={() => setTab("bracket")} type="button">{labels.bracketTab}</button>
+          <button className={`tour-tab ${tab === "scorers" ? "is-active" : ""}`} onClick={() => setTab("scorers")} type="button">{labels.scorersTab}</button>
         </div>
 
         {tab === "groups" ? (
@@ -1254,7 +1345,7 @@ function TournamentModal({
               />
             ))}
           </div>
-        ) : (
+        ) : tab === "bracket" ? (
           <div
             className="tour-bracket-grid"
             ref={bracketScrollRef}
@@ -1287,6 +1378,8 @@ function TournamentModal({
               );
             })}
           </div>
+        ) : (
+          <TopScorersPanel draft={draft} labels={labels} locale={locale} matches={revealedCampaign} />
         )}
       </section>
     </div>
@@ -1426,7 +1519,7 @@ function AnimatedRevealView({
           <SettingsToggle locale={locale} label={t.home.settings} />
         </div>
       </section>
-      {tournamentOpen && <TournamentModal locale={locale} result={result} visibleCount={visibleCount} onClose={() => setTournamentOpen(false)} />}
+      {tournamentOpen && <TournamentModal draft={draft} locale={locale} result={result} visibleCount={visibleCount} onClose={() => setTournamentOpen(false)} />}
       <div className="fixture-list" ref={fixtureListRef}>
         {visible.map((match, index) => (
           <AnimatedFixture
@@ -1521,32 +1614,27 @@ function PenaltyRound({
   me,
   opponent,
   opponentName,
+  round,
 }: {
   locale: Locale;
   me: { kick: number; name?: string } | null;
   opponent: { kick: number; name?: string } | null;
   opponentName: string;
+  round: number;
 }) {
   const t = messages[locale];
   return (
     <div className="rv-pen-round">
-      <span className="rv-kick-row rv-kick-row--me">
-        {me && (
-          <>
-            <PenaltyKickMark kick={me.kick} />
-            <span className="rv-kick-name">{me.name ?? t.reveal.yourTeam}</span>
-          </>
-        )}
+      <span className="rv-pen-index num">{round}</span>
+      <span className="rv-kick-name rv-kick-name--me">{me?.name ?? t.reveal.yourTeam}</span>
+      <span className="rv-kick-slot rv-kick-slot--me">
+        {me ? <PenaltyKickMark kick={me.kick} /> : <span className="rv-kick-placeholder" aria-hidden="true" />}
       </span>
       <span className="rv-pen-vs">{me && opponent ? "vs" : ""}</span>
-      <span className="rv-kick-row rv-kick-row--them">
-        {opponent && (
-          <>
-            <PenaltyKickMark kick={opponent.kick} />
-            <span className="rv-kick-name">{opponent.name ?? opponentName}</span>
-          </>
-        )}
+      <span className="rv-kick-slot rv-kick-slot--them">
+        {opponent ? <PenaltyKickMark kick={opponent.kick} /> : <span className="rv-kick-placeholder" aria-hidden="true" />}
       </span>
+      <span className="rv-kick-name rv-kick-name--them">{opponent?.name ?? opponentName}</span>
     </div>
   );
 }
@@ -1603,7 +1691,8 @@ function AnimatedFixture({
   const liveGa = inProgress ? visibleGoals.filter((goal) => goal.side === "them").length : match.ga;
   const latestGoal = visibleGoals.at(-1);
   const showFinal = !pending && !inProgress;
-  const resultMark = match.gf === match.ga ? "-" : match.advanced ? "\u2713" : "X";
+  const finalResultTone = match.penalties ? (match.advanced ? "is-win" : "is-loss") : match.gf > match.ga ? "is-win" : match.gf < match.ga ? "is-loss" : "is-draw";
+  const resultMark = match.penalties ? (match.advanced ? "\u2713" : "X") : match.gf === match.ga ? "-" : match.advanced ? "\u2713" : "X";
   const mark = match.phase === "FINAL" && match.advanced ? "*" : resultMark;
   const penaltyKicks = match.penalties ? penaltyTimeline(match.penalties) : [];
   const penaltyStart = timing.p5End + 600;
@@ -1636,7 +1725,7 @@ function AnimatedFixture({
   const groupPosition = match.groupTable?.findIndex((row) => row.me) ?? -1;
   const groupRankText = groupPosition >= 0 ? groupRank(groupPosition, locale) : "";
   const hasFinalTone = !active || instant || showFinal;
-  const resultTone = hasFinalTone ? (match.advanced ? "is-win" : "is-loss") : "is-live";
+  const resultTone = hasFinalTone ? finalResultTone : "is-live";
   const scoreTone = !pending && liveGf < liveGa ? "is-score-loss" : "";
 
   return (
@@ -1665,7 +1754,7 @@ function AnimatedFixture({
         </strong>
         <span className="fixture-clock">
           {showFinal ? (
-            <b className={`fx-mark ${match.gf === match.ga ? "is-draw" : match.advanced ? "is-win" : "is-loss"}`}>{mark}</b>
+            <b className={`fx-mark ${finalResultTone}`}>{mark}</b>
           ) : clock.label ? (
             <b className="num">{clock.label}&apos;</b>
           ) : (
@@ -1693,7 +1782,7 @@ function AnimatedFixture({
       </button>
       {showBody && (
         <div className={`reveal-body ${instant ? "is-instant" : ""}`}>
-          {visibleGoals.length > 0 && (
+          {visibleGoals.length > 0 && !match.penalties && (
             <ol className="rv-tl">
               {visibleGoals.map((goal, goalIndex) => (
                 <li
@@ -1703,7 +1792,7 @@ function AnimatedFixture({
                 >
                   <span className="rv-min num">{goal.minute}&apos;</span>
                   <span className="rv-ico" aria-hidden="true">
-                    {"\u2022"}
+                    {"\u26bd"}
                   </span>
                   <span className="rv-scorer">{goal.name}</span>
                 </li>
@@ -1712,29 +1801,32 @@ function AnimatedFixture({
           )}
           {showFinal && match.penalties && (
             <div className={`fixture-pen ${penaltyComplete ? "is-complete" : "is-live"}`}>
-              <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].bestOfFive}</div>
               {!penaltyComplete && nextPenaltyKick && (
                 <span className="penalty-live">
                   {penaltyLiveLabels[locale]} {"\u00b7"} {nextPenaltyKick.name ?? (nextPenaltyKick.side === "me" ? t.reveal.yourTeam : opponentName)}
                 </span>
               )}
-              <div className="rv-pens-rounds">
-                {basePenaltyRows.map((row) => (
-                  <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={opponentName} key={`base-${row.index}`} />
-                ))}
+              <div className="rv-pens-stage">
+                <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].bestOfFive}</div>
+                <div className="rv-pens-rounds">
+                  {basePenaltyRows.map((row) => (
+                    <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={opponentName} round={row.index + 1} key={`base-${row.index}`} />
+                  ))}
+                </div>
               </div>
               {suddenDeathPenaltyRows.length > 0 && (
-                <div className="rv-sd">
+                <div className="rv-pens-stage rv-sd">
                   <div className="rv-pens-h eyebrow">{penaltyStageLabels[locale].suddenDeath}</div>
                   <div className="rv-pens-rounds">
                     {suddenDeathPenaltyRows.map((row) => (
-                      <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={opponentName} key={`sd-${row.index}`} />
+                      <PenaltyRound locale={locale} me={row.me} opponent={row.them} opponentName={opponentName} round={row.index + 1} key={`sd-${row.index}`} />
                     ))}
                   </div>
                 </div>
               )}
               {visiblePenaltyCount > 0 && (
-                <div className="rv-pens-out">
+                <div className={`rv-pens-out ${match.advanced ? "is-win" : "is-loss"}`}>
+                  <span aria-hidden="true">{"\ud83c\udfc6"}</span>
                   <span className="num">{livePenaltyScore}</span> {penaltyComplete ? penaltyStageLabels[locale][match.advanced ? "advanced" : "eliminated"] : ""}
                 </div>
               )}
