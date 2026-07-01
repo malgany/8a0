@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useRef } from "react";
 import type { Locale } from "@/lib/types";
 import { localePath, messages } from "@/lib/i18n";
+import { SHOWCASE_DRAFT_STORAGE_KEY } from "@/lib/showcase";
 import { SettingsToggle } from "./ChromeControls";
 import { PitchMarkings } from "./PitchMarkings";
+
+const SHOWCASE_DRAFT_CODE = "197884";
 
 const previewPlayers = [
   { number: "1", name: "Neuer", left: 50, top: 88, force: 99 },
@@ -24,6 +30,20 @@ const previewChemistry = Math.round(
 
 export function HomePage({ locale }: { locale: Locale }) {
   const t = messages[locale];
+  const secretSequence = useRef("");
+
+  function recordPreviewNumber(value: string) {
+    secretSequence.current = `${secretSequence.current}${value}`.slice(-SHOWCASE_DRAFT_CODE.length);
+  }
+
+  function armShowcaseDraft() {
+    if (secretSequence.current === SHOWCASE_DRAFT_CODE) {
+      sessionStorage.setItem(SHOWCASE_DRAFT_STORAGE_KEY, "1");
+      return;
+    }
+    sessionStorage.removeItem(SHOWCASE_DRAFT_STORAGE_KEY);
+  }
+
   return (
     <main className="home-wrap home-shell home-dream tx-paper">
       <header className="home-head">
@@ -67,9 +87,13 @@ export function HomePage({ locale }: { locale: Locale }) {
             {t.home.sub[2]}
           </p>
           <div className="home-ctas">
-            <Link className="btn btn-primary home-cta-main" href={localePath(locale, "/play")} prefetch={false}>
+            <Link className="btn btn-primary home-cta-main" href={localePath(locale, "/play")} prefetch={false} onClick={armShowcaseDraft}>
               <span className="home-cta-ball" aria-hidden="true">{"\u26bd"}</span>
               <span>{t.home.cta}</span>
+            </Link>
+            <Link className="btn btn-primary home-cta-main home-cta-online" href={localePath(locale, "/online")} prefetch={false}>
+              <span className="home-cta-ball" aria-hidden="true">{"\u25c9"}</span>
+              <span>{t.online.cta}</span>
             </Link>
           </div>
         </section>
@@ -92,7 +116,9 @@ export function HomePage({ locale }: { locale: Locale }) {
             <PitchMarkings />
             {previewPlayers.map((player) => (
               <div key={player.name} className="hp-disc" style={{ left: `${player.left}%`, top: `${player.top}%` }}>
-                <span className="hp-c num">{player.number}</span>
+                <span className="hp-c num" onClick={() => recordPreviewNumber(player.number)}>
+                  {player.number}
+                </span>
                 <span className="hp-n">{player.name}</span>
               </div>
             ))}

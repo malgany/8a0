@@ -9,6 +9,7 @@ import {
   calculateStats,
   canFillAnySlot,
   createDraft,
+  createShowcaseDraft,
   defaultOptions,
   describePair,
   fetchSquad,
@@ -27,6 +28,7 @@ import { localePath, messages, positionLabels, styleLabels } from "@/lib/i18n";
 import { nationFlag, nationFlagImageUrl, nationName } from "@/lib/nations";
 import { formatPlayerNumber, formatPlayerNumberWithHash } from "@/lib/player-number";
 import { decodeSharePayload } from "@/lib/share";
+import { SHOWCASE_DRAFT_STORAGE_KEY } from "@/lib/showcase";
 import { SettingsToggle } from "./ChromeControls";
 import { Logo } from "./Logo";
 import { PitchMarkings } from "./PitchMarkings";
@@ -1901,6 +1903,23 @@ export function PlayClient({ locale, sharedCode }: { locale: Locale; sharedCode?
   const rollColumnRef = useRef<HTMLDivElement>(null);
   const pitchColumnRef = useRef<HTMLDivElement>(null);
   const complete = draft.filled.every(Boolean);
+
+  useEffect(() => {
+    if (sharedCode || typeof window === "undefined") return;
+    if (sessionStorage.getItem(SHOWCASE_DRAFT_STORAGE_KEY) !== "1") return;
+    const timer = window.setTimeout(() => {
+      sessionStorage.removeItem(SHOWCASE_DRAFT_STORAGE_KEY);
+      setDraft(createShowcaseDraft());
+      setSquad(null);
+      setSelected(null);
+      setMovingFromSlot(null);
+      setRollingPair(null);
+      setIsRolling(false);
+      setResult(null);
+      setPhase("drafting");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [sharedCode]);
 
   useEffect(() => {
     if (!sharedCode) return;

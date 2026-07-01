@@ -32,6 +32,20 @@ export const defaultOptions: DraftOptions = {
   mode: "classico",
 };
 
+const showcasePlayerKeys = [
+  { sel: "GER", copa: 2014, playerId: "manuel-neuer" },
+  { sel: "BRA", copa: 1970, playerId: "carlos-alberto-torres" },
+  { sel: "GER", copa: 1974, playerId: "franz-beckenbauer" },
+  { sel: "ENG", copa: 1966, playerId: "bobby-moore" },
+  { sel: "BRA", copa: 2002, playerId: "roberto-carlos" },
+  { sel: "BRA", copa: 1970, playerId: "gerson" },
+  { sel: "BRA", copa: 1970, playerId: "pele" },
+  { sel: "ARG", copa: 1986, playerId: "diego-maradona" },
+  { sel: "ARG", copa: 2022, playerId: "lionel-messi" },
+  { sel: "BRA", copa: 2002, playerId: "ronaldo" },
+  { sel: "POR", copa: 2018, playerId: "cristiano-ronaldo" },
+] as const;
+
 export const modeConfig = {
   classico: { rerolls: 3, statsVisible: true },
   almanaque: { rerolls: 1, statsVisible: false },
@@ -463,6 +477,24 @@ export function createDraft(seed: string, options: DraftOptions = defaultOptions
     rollIndex: 0,
     rerollsLeft: modeConfig[options.mode].rerolls,
     usedPlayerIds: [],
+  };
+}
+
+export function createShowcaseDraft(seed = randomSeed()): Draft {
+  const draft = createDraft(seed, defaultOptions);
+  const filled = showcasePlayerKeys.map((key) => {
+    const squad = squadFilesByKey.get(`${key.sel}:${key.copa}`);
+    const player = squad?.squad.find((item) => item.playerId === key.playerId);
+    if (!player) throw new Error(`Showcase player not indexed: ${key.sel}:${key.copa}:${key.playerId}`);
+    return player;
+  });
+  return {
+    ...draft,
+    filled,
+    current: null,
+    rollIndex: filled.length,
+    rerollsLeft: 0,
+    usedPlayerIds: filled.map((player) => player.playerId),
   };
 }
 

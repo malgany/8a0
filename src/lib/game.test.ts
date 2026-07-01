@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   calculateStats,
   createDraft,
+  createShowcaseDraft,
   defaultOptions,
   findSquadMeta,
   formations,
@@ -12,6 +13,7 @@ import {
   squadFiles,
   squadIndex,
 } from "./game";
+import { createOnlineCampaign } from "./online-game";
 import type { Player, SquadFile } from "./types";
 
 const groupLetters = "ABCDEFGHIJKL".split("");
@@ -106,6 +108,25 @@ describe("game model", () => {
     const second = simulateCampaign("fixed", draft, []);
     expect(second).toEqual(first);
     expect(first.campaign.length).toBeGreaterThan(0);
+  });
+
+  it("builds the showcase XI with each player's best World Cup version", () => {
+    const draft = createShowcaseDraft("showcase-fixed");
+    expect(draft.filled.map((player) => `${player?.sel}:${player?.copa}:${player?.playerId}`)).toEqual([
+      "GER:2014:manuel-neuer",
+      "BRA:1970:carlos-alberto-torres",
+      "GER:1974:franz-beckenbauer",
+      "ENG:1966:bobby-moore",
+      "BRA:2002:roberto-carlos",
+      "BRA:1970:gerson",
+      "BRA:1970:pele",
+      "ARG:1986:diego-maradona",
+      "ARG:2022:lionel-messi",
+      "BRA:2002:ronaldo",
+      "POR:2018:cristiano-ronaldo",
+    ]);
+    expect(draft.filled.every(Boolean)).toBe(true);
+    expect(draft.rerollsLeft).toBe(0);
   });
 
   it("shows real opponent labels when opponent squads are loaded", () => {
@@ -203,5 +224,34 @@ describe("game model", () => {
     }
     expect(shootout?.penalties?.meNames?.length).toBeGreaterThan(0);
     expect(shootout?.penalties?.themNames?.length).toBeGreaterThan(0);
+  });
+
+  it("builds a stable eight-game online campaign", () => {
+    const draft = filledDraft("online-fixed");
+    const first = createOnlineCampaign("online-fixed", draft);
+    const second = createOnlineCampaign("online-fixed", draft);
+
+    expect(first).toHaveLength(8);
+    expect(second).toEqual(first);
+    first.forEach((match, index) => {
+      expect(match.index).toBe(index);
+      expect(match.opponentSel).toMatch(/^[A-Z]{3}$/);
+      expect(match.opponentCopa).toBeGreaterThanOrEqual(1930);
+      expect(match.opponentOverall).toBeGreaterThan(0);
+      expect(match.gf).toBeGreaterThanOrEqual(0);
+      expect(match.ga).toBeGreaterThanOrEqual(0);
+      expect(typeof match.won).toBe("boolean");
+      expect(match.goals).toHaveLength(match.gf + match.ga);
+      expect(match.goals.every((goal) => goal.side === "me" || goal.side === "them")).toBe(true);
+      if (match.gf === match.ga) {
+        expect(match.penalties).toBeDefined();
+        const [mePens, themPens] = match.penalties!.score.split("-").map(Number);
+        expect(mePens).not.toBe(themPens);
+        expect(match.won).toBe((mePens ?? 0) > (themPens ?? 0));
+      } else {
+        expect(match.penalties).toBeUndefined();
+        expect(match.won).toBe(match.gf > match.ga);
+      }
+    });
   });
 });
