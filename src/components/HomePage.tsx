@@ -8,20 +8,20 @@ import { SHOWCASE_DRAFT_STORAGE_KEY } from "@/lib/showcase";
 import { SettingsToggle } from "./ChromeControls";
 import { PitchMarkings } from "./PitchMarkings";
 
-const SHOWCASE_DRAFT_CODE = "197884";
+const SHOWCASE_DRAFT_CODE = "19913652";
 
 const previewPlayers = [
   { number: "1", name: "Neuer", left: 50, top: 88, force: 99 },
-  { number: "4", name: "C. Alberto", left: 82, top: 70, force: 90 },
+  { number: "2", name: "D. da Guia", left: 82, top: 70, force: 94 },
   { number: "5", name: "Beckenbauer", left: 60, top: 74, force: 97 },
   { number: "6", name: "Moore", left: 40, top: 74, force: 91 },
-  { number: "6", name: "R. Carlos", left: 18, top: 70, force: 91 },
-  { number: "8", name: "Gérson", left: 30, top: 48, force: 89 },
+  { number: "3", name: "Maldini", left: 18, top: 70, force: 95 },
+  { number: "10", name: "Platini", left: 30, top: 48, force: 97 },
   { number: "10", name: "Pelé", left: 50, top: 52, force: 99 },
   { number: "10", name: "Maradona", left: 70, top: 48, force: 99 },
   { number: "10", name: "Messi", left: 78, top: 24, force: 99 },
   { number: "9", name: "Ronaldo", left: 50, top: 18, force: 97 },
-  { number: "7", name: "C. Ronaldo", left: 22, top: 24, force: 93 },
+  { number: "7", name: "Garrincha", left: 22, top: 24, force: 98 },
 ] as const;
 
 const previewChemistry = Math.round(
@@ -90,10 +90,6 @@ export function HomePage({ locale }: { locale: Locale }) {
             <Link className="btn btn-primary home-cta-main" href={localePath(locale, "/play")} prefetch={false} onClick={armShowcaseDraft}>
               <span className="home-cta-ball" aria-hidden="true">{"\u26bd"}</span>
               <span>{t.home.cta}</span>
-            </Link>
-            <Link className="btn btn-primary home-cta-main home-cta-online" href={localePath(locale, "/online")} prefetch={false}>
-              <span className="home-cta-ball" aria-hidden="true">{"\u25c9"}</span>
-              <span>{t.online.cta}</span>
             </Link>
           </div>
         </section>

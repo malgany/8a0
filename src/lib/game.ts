@@ -34,16 +34,16 @@ export const defaultOptions: DraftOptions = {
 
 const showcasePlayerKeys = [
   { sel: "GER", copa: 2014, playerId: "manuel-neuer" },
-  { sel: "BRA", copa: 1970, playerId: "carlos-alberto-torres" },
+  { sel: "BRA", copa: 1938, playerId: "domingos-da-guia-bra-1938" },
   { sel: "GER", copa: 1974, playerId: "franz-beckenbauer" },
   { sel: "ENG", copa: 1966, playerId: "bobby-moore" },
-  { sel: "BRA", copa: 2002, playerId: "roberto-carlos" },
-  { sel: "BRA", copa: 1970, playerId: "gerson" },
+  { sel: "ITA", copa: 1998, playerId: "paolo-maldini" },
+  { sel: "FRA", copa: 1982, playerId: "michel-platini" },
   { sel: "BRA", copa: 1970, playerId: "pele" },
   { sel: "ARG", copa: 1986, playerId: "diego-maradona" },
   { sel: "ARG", copa: 2022, playerId: "lionel-messi" },
   { sel: "BRA", copa: 2002, playerId: "ronaldo" },
-  { sel: "POR", copa: 2018, playerId: "cristiano-ronaldo" },
+  { sel: "BRA", copa: 1962, playerId: "garrincha" },
 ] as const;
 
 export const modeConfig = {

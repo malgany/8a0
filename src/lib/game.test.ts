@@ -114,16 +114,16 @@ describe("game model", () => {
     const draft = createShowcaseDraft("showcase-fixed");
     expect(draft.filled.map((player) => `${player?.sel}:${player?.copa}:${player?.playerId}`)).toEqual([
       "GER:2014:manuel-neuer",
-      "BRA:1970:carlos-alberto-torres",
+      "BRA:1938:domingos-da-guia-bra-1938",
       "GER:1974:franz-beckenbauer",
       "ENG:1966:bobby-moore",
-      "BRA:2002:roberto-carlos",
-      "BRA:1970:gerson",
+      "ITA:1998:paolo-maldini",
+      "FRA:1982:michel-platini",
       "BRA:1970:pele",
       "ARG:1986:diego-maradona",
       "ARG:2022:lionel-messi",
       "BRA:2002:ronaldo",
-      "POR:2018:cristiano-ronaldo",
+      "BRA:1962:garrincha",
     ]);
     expect(draft.filled.every(Boolean)).toBe(true);
     expect(draft.rerollsLeft).toBe(0);

@@ -107,14 +107,14 @@ async function completeLineup(page: Page) {
 test("home renders the 8a0 entry experience", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: /jogar|time/i }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /^online$/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^online$/i })).toHaveCount(0);
   await expect(page.locator(".home-pitch")).toBeVisible();
 });
 
 test("secret showcase code opens a completed lineup", async ({ page }) => {
   await page.goto("/");
   const numbers = page.locator(".home-pitch .hp-c");
-  for (const index of [0, 9, 10, 5, 5, 1]) {
+  for (const index of [0, 9, 9, 0, 4, 3, 2, 1]) {
     await numbers.nth(index).click();
   }
   await page.locator(".home-cta-main").first().click();
@@ -173,8 +173,7 @@ test("play page can roll, simulate, and inspect the Cup panel", async ({ page })
 
 test("online flow creates a team, drafts a lineup, and plays the first campaign match", async ({ page }) => {
   test.setTimeout(220_000);
-  await page.goto("/");
-  await page.getByRole("link", { name: /^online$/i }).click();
+  await page.goto("/online");
   await expect(page.getByRole("button", { name: /convidado|guest/i })).toBeVisible();
   await page.getByRole("button", { name: /convidado|guest/i }).click();
 
